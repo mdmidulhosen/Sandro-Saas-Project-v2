@@ -1,0 +1,75 @@
+:root {
+  --bg:      #0b0c10;
+  --card:    #12141b;
+  --card2:   #1a1d27;
+  --fg:      #eef1ff;
+  --accent:  #6ee7ff;
+  --accent2: #5bc8e5;
+  --danger:  #ff6b6b;
+  --success: #6ee78a;
+  --warn:    #ffd96e;
+  --border:  rgba(255,255,255,0.10);
+  --border2: rgba(255,255,255,0.05);
+  --shadow:  0 4px 20px rgba(0,0,0,0.4);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Futura', 'Trebuchet MS', 'Segoe UI', sans-serif;
+  background: var(--bg);
+  color: var(--fg);
+  min-height: 100vh;
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: var(--accent); text-decoration: none; }
+
+input, select, textarea {
+  background: #1f2833;
+  border: 1px solid var(--border);
+  color: var(--fg);
+  padding: 9px 12px;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 13px;
+  width: 100%;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+input:focus, select:focus { border-color: var(--accent); }
+
+input[type="checkbox"] {
+  width: 16px !important;
+  height: 16px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+input[type="file"] { padding: 6px; cursor: pointer; }
+
+label {
+  font-size: 11px;
+  color: var(--accent);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: block;
+  margin-bottom: 5px;
+}
+
+/* Print: hide UI, show labels only */
+@media print {
+  .navbar,
+  .page-header,
+  .config-section,
+  .gen-buttons,
+  .preview-header,
+  .preview-actions { display: none !important; }
+  .main-content { margin-left: 0 !important; padding: 0 !important; }
+  .preview-area { background: white !important; padding: 10px !important; }
+  .label-tag { display: none !important; }
+  body { background: white !important; }
+}

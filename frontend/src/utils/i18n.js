@@ -1,0 +1,282 @@
+import React, { createContext, useContext, useState } from 'react';
+
+const translations = {
+  en: {
+    // Nav
+    nav_dashboard: 'Dashboard',
+    nav_templates: 'Templates',
+    nav_generator: 'Generator',
+
+    // Dashboard
+    dash_title: 'Dashboard',
+    dash_subtitle: 'Automatic Award Label Generator System',
+    dash_saved_templates: 'Saved Templates',
+    dash_label_types: 'Label Types',
+    dash_vector_export: 'Vector Export (Illustrator)',
+    dash_generate: 'Generate Labels',
+    dash_generate_desc: 'Create competition labels in vector SVG',
+    dash_manage_templates: 'Manage Templates',
+    dash_manage_desc: 'Create and edit reusable competition templates',
+    dash_available_templates: 'Available Templates',
+    dash_use_template: 'Use Template →',
+    dash_backend_error: 'Backend not reachable. Start the server with: node index.js',
+    dash_how_title: 'How it works',
+    dash_how_1: 'Create a <strong>template</strong> for each competition type (FGI, UISP, etc.)',
+    dash_how_2: 'In the <strong>Generator</strong>, select the template and enter competition details',
+    dash_how_3: 'Optionally import an <strong>Excel</strong> file with categories and quantities',
+    dash_how_4: 'Click <strong>CREATE</strong> to see the real-time preview',
+    dash_how_5: 'Export as <strong>vector SVG</strong> (editable in Illustrator)',
+    dash_cat_single: 'category',
+    dash_cat_plural: 'categories',
+
+    // Templates page
+    tmpl_title: 'Templates',
+    tmpl_subtitle: 'Manage reusable competition templates',
+    tmpl_new: '+ New Template',
+    tmpl_none: 'No templates found.',
+    tmpl_create_first: 'Create first template',
+    tmpl_use: 'Use',
+    tmpl_edit: 'Edit',
+    tmpl_delete: 'Delete',
+    tmpl_cat_single: 'category',
+    tmpl_cat_plural: 'categories',
+    tmpl_with_participation: 'with participation',
+    tmpl_edit_title: 'Edit Template',
+    tmpl_new_title: 'New Template',
+    tmpl_name_label: 'Template Name *',
+    tmpl_name_ph: 'e.g. FGI GAF Regional',
+    tmpl_desc_label: 'Description',
+    tmpl_desc_ph: 'Short description',
+    tmpl_podio_label: 'Podium text',
+    tmpl_diam_label: 'Medal diameter',
+    tmpl_participation_label: 'Participation medal',
+    tmpl_categories_section: 'Categories',
+    tmpl_col_category: 'Category',
+    tmpl_col_trophies: 'Trophies',
+    tmpl_col_medals: 'Medals',
+    tmpl_col_diam: 'Ø',
+    tmpl_col_winners: 'Winners/pos.',
+    tmpl_col_apparatus: 'Apparatus',
+    tmpl_add_category: '+ Add Category',
+    tmpl_saving: 'Saving…',
+    tmpl_save: 'Save Template',
+    tmpl_cancel: 'Cancel',
+    tmpl_delete_confirm: 'Delete this template?',
+    tmpl_save_error: 'Error saving template',
+    tmpl_enter_name: 'Enter template name',
+    tmpl_connect_error: 'Cannot connect to backend',
+    tmpl_logo_label: 'Template Logo',
+    tmpl_logo_clear: 'Remove',
+
+    // Generator page
+    gen_title: 'Label Generator',
+    gen_subtitle: 'Configure and generate labels for your competition',
+    gen_type_section: 'COMPETITION TYPE',
+    gen_custom_option: 'Custom (manual)',
+    gen_event_section: 'COMPETITION DATA',
+    gen_event_name_label: 'Competition name (top text on medal)',
+    gen_location_label: 'Location and Date (bottom text on medal)',
+    gen_logo_label: 'Club Logo',
+    gen_podio_label: 'Podium text (medal back)',
+    gen_participation_label: 'Participation medal (Ø 25mm)',
+    gen_logo_preview: 'Logo preview',
+    gen_categories_section: 'CATEGORIES',
+    gen_import_excel: '📊 Import from Excel',
+    gen_loading_excel: 'Loading…',
+    gen_col_category: 'Category',
+    gen_col_trophies: 'Trophies',
+    gen_col_medals: 'Medals',
+    gen_col_diam: 'Ø mm',
+    gen_col_winners: 'Winners/pos.',
+    gen_col_apparatus: 'Apparatus',
+    gen_add_category: '+ Add Category',
+    gen_btn_participation: 'CREATE PARTICIPATION',
+    gen_btn_trophies: 'CREATE TROPHIES',
+    gen_btn_medals: 'CREATE MEDALS',
+    gen_btn_all: 'CREATE ALL',
+    gen_preview_title: 'Preview',
+    gen_label_single: 'label',
+    gen_label_plural: 'labels',
+    gen_download_svg: '⬇ Download SVG (Illustrator)',
+    gen_download_pdf: '📄 Export PDF',
+    gen_print: '🖨 Print',
+    gen_winners_tooltip: 'Number of winners per position (e.g. 4 = four 1st place, four 2nd, etc.)',
+    gen_participation_count: 'Participation qty',
+    gen_sheet_size: 'Sheet Size',
+    gen_sheet_custom_w: 'Width (mm)',
+
+    // Excel modal
+    excel_title: 'Import from Excel',
+    excel_loaded: 'File loaded:',
+    excel_rows: 'rows',
+    excel_cols: 'columns',
+    excel_map_desc: 'Map columns to fields:',
+    excel_col_category: 'Category column *',
+    excel_col_trophies: 'Trophies column',
+    excel_col_medals: 'Medals column',
+    excel_col_diam: 'Ø (mm) column',
+    excel_col_winners: 'Winners/pos. column',
+    excel_none_option: '— do not use —',
+    excel_more_rows: 'more rows',
+    excel_import_btn: 'Import Categories',
+    excel_cancel: 'Cancel',
+    excel_error: 'Error parsing Excel file',
+
+    // Podium modes
+    podio_classificata: '1° CLASSIFIED (f) / 2° / 3°',
+    podio_classificato: '1° CLASSIFIED (m) / 2° / 3°',
+    podio_fasce: 'GOLD BAND / SILVER / BRONZE',
+  },
+
+  it: {
+    // Nav
+    nav_dashboard: 'Dashboard',
+    nav_templates: 'Templates',
+    nav_generator: 'Generatore',
+
+    // Dashboard
+    dash_title: 'Dashboard',
+    dash_subtitle: 'Sistema Generatore Automatico di Etichette per Premi',
+    dash_saved_templates: 'Templates Salvati',
+    dash_label_types: 'Tipi di Etichette',
+    dash_vector_export: 'Export Vettoriale (Illustrator)',
+    dash_generate: 'Genera Etichette',
+    dash_generate_desc: 'Crea etichette per la tua gara in SVG vettoriale',
+    dash_manage_templates: 'Gestisci Templates',
+    dash_manage_desc: 'Crea e modifica template di gara riutilizzabili',
+    dash_available_templates: 'Templates Disponibili',
+    dash_use_template: 'Usa Template →',
+    dash_backend_error: 'Backend non raggiungibile. Avvia il server con: node index.js',
+    dash_how_title: 'Come funziona',
+    dash_how_1: 'Crea un <strong>template</strong> per ogni tipo di gara (FGI, UISP, ecc.)',
+    dash_how_2: 'Nel <strong>Generatore</strong>, seleziona il template e inserisci i dati della gara',
+    dash_how_3: 'Importa facoltativamente un file <strong>Excel</strong> con le categorie e quantità',
+    dash_how_4: 'Clicca <strong>CREA</strong> per visualizzare l\'anteprima in tempo reale',
+    dash_how_5: 'Esporta come <strong>SVG vettoriale</strong> (apribile e modificabile in Illustrator)',
+    dash_cat_single: 'categoria',
+    dash_cat_plural: 'categorie',
+
+    // Templates page
+    tmpl_title: 'Templates',
+    tmpl_subtitle: 'Gestisci i template di gara riutilizzabili',
+    tmpl_new: '+ Nuovo Template',
+    tmpl_none: 'Nessun template trovato.',
+    tmpl_create_first: 'Crea il primo template',
+    tmpl_use: 'Usa',
+    tmpl_edit: 'Modifica',
+    tmpl_delete: 'Elimina',
+    tmpl_cat_single: 'categoria',
+    tmpl_cat_plural: 'categorie',
+    tmpl_with_participation: 'con partecipazione',
+    tmpl_edit_title: 'Modifica Template',
+    tmpl_new_title: 'Nuovo Template',
+    tmpl_name_label: 'Nome Template *',
+    tmpl_name_ph: 'es. FGI GAF Regionale',
+    tmpl_desc_label: 'Descrizione',
+    tmpl_desc_ph: 'Descrizione breve',
+    tmpl_podio_label: 'Testo podio',
+    tmpl_diam_label: 'Ø Medaglie podio',
+    tmpl_participation_label: 'Medaglia partecipazione',
+    tmpl_categories_section: 'Categorie',
+    tmpl_col_category: 'Categoria',
+    tmpl_col_trophies: 'Coppe',
+    tmpl_col_medals: 'Medaglie',
+    tmpl_col_diam: 'Ø',
+    tmpl_col_winners: 'Vincitori/pos.',
+    tmpl_col_apparatus: 'Attrezzi',
+    tmpl_add_category: '+ Aggiungi Categoria',
+    tmpl_saving: 'Salvataggio…',
+    tmpl_save: 'Salva Template',
+    tmpl_cancel: 'Annulla',
+    tmpl_delete_confirm: 'Eliminare questo template?',
+    tmpl_save_error: 'Errore nel salvataggio',
+    tmpl_enter_name: 'Inserisci il nome del template',
+    tmpl_connect_error: 'Impossibile connettersi al backend',
+    tmpl_logo_label: 'Logo Template',
+    tmpl_logo_clear: 'Rimuovi',
+
+    // Generator page
+    gen_title: 'Generatore Etichette',
+    gen_subtitle: 'Configura e genera etichette per la tua manifestazione',
+    gen_type_section: 'TIPO GARA',
+    gen_custom_option: 'Personalizzato (manuale)',
+    gen_event_section: 'DATI GARA',
+    gen_event_name_label: 'Nome Gara (testo sopra medaglia)',
+    gen_location_label: 'Luogo e Data (testo sotto medaglia)',
+    gen_logo_label: 'Logo Società',
+    gen_podio_label: 'Testo podio (retro medaglia)',
+    gen_participation_label: 'Medaglia partecipazione (Ø 25mm)',
+    gen_logo_preview: 'Anteprima logo',
+    gen_categories_section: 'CATEGORIE',
+    gen_import_excel: '📊 Importa da Excel',
+    gen_loading_excel: 'Caricamento…',
+    gen_col_category: 'Categoria',
+    gen_col_trophies: 'Coppe',
+    gen_col_medals: 'Medaglie',
+    gen_col_diam: 'Ø mm',
+    gen_col_winners: 'Vincitori/pos.',
+    gen_col_apparatus: 'Attrezzi',
+    gen_add_category: '+ Aggiungi Categoria',
+    gen_btn_participation: 'CREA PARTECIPAZIONE',
+    gen_btn_trophies: 'CREA COPPE',
+    gen_btn_medals: 'CREA MEDAGLIE',
+    gen_btn_all: 'CREA TUTTE',
+    gen_preview_title: 'Anteprima',
+    gen_label_single: 'etichetta',
+    gen_label_plural: 'etichette',
+    gen_download_svg: '⬇ Download SVG (Illustrator)',
+    gen_download_pdf: '📄 Esporta PDF',
+    gen_print: '🖨 Stampa',
+    gen_winners_tooltip: 'Numero di vincitori per ogni posizione (es. 4 = quattro 1°, quattro 2°, ecc.)',
+    gen_participation_count: 'Quantità partecipazione',
+    gen_sheet_size: 'Formato Foglio',
+    gen_sheet_custom_w: 'Larghezza (mm)',
+
+    // Excel modal
+    excel_title: 'Importa da Excel',
+    excel_loaded: 'File caricato:',
+    excel_rows: 'righe',
+    excel_cols: 'colonne',
+    excel_map_desc: 'Associa le colonne ai campi:',
+    excel_col_category: 'Colonna Categoria *',
+    excel_col_trophies: 'Colonna Coppe',
+    excel_col_medals: 'Colonna Medaglie',
+    excel_col_diam: 'Colonna Ø (mm)',
+    excel_col_winners: 'Colonna Vincitori/pos.',
+    excel_none_option: '— non usare —',
+    excel_more_rows: 'altre righe',
+    excel_import_btn: 'Importa Categorie',
+    excel_cancel: 'Annulla',
+    excel_error: 'Errore nel parsing del file Excel',
+
+    // Podium modes
+    podio_classificata: '1° CLASSIFICATA / 2° / 3°',
+    podio_classificato: '1° CLASSIFICATO / 2° / 3°',
+    podio_fasce: 'FASCIA ORO / ARGENTO / BRONZO',
+  }
+};
+
+const LanguageContext = createContext();
+
+export function LanguageProvider({ children }) {
+  const [lang, setLang] = useState(() => localStorage.getItem('sf_lang') || 'it');
+
+  function switchLang(newLang) {
+    setLang(newLang);
+    localStorage.setItem('sf_lang', newLang);
+  }
+
+  function t(key) {
+    return translations[lang]?.[key] || translations['it']?.[key] || key;
+  }
+
+  return (
+    <LanguageContext.Provider value={{ lang, switchLang, t }}>
+      {children}
+    </LanguageContext.Provider>
+  );
+}
+
+export function useTranslation() {
+  return useContext(LanguageContext);
+}

@@ -1,0 +1,159 @@
+[
+  {
+    "id": "1befd23f-0f0b-4cbe-9124-326f89b11dac",
+    "name": "FGI – Squadre",
+    "description": "Premiazione con sole coppe (1°–3°)",
+    "podioMode": "classificata",
+    "hasParticipation": false,
+    "podioDiameterMm": 40,
+    "categories": [
+      {
+        "id": "b97fa494-7ff0-420f-abe0-526f20b48da4",
+        "name": "SQUADRE",
+        "coppe": 3,
+        "medals": 0,
+        "diameterMm": 40,
+        "winnersPerPosition": 1,
+        "hasApparatus": false,
+        "apparatus": []
+      }
+    ],
+    "created_at": "2026-02-23T20:57:46.387Z"
+  },
+  {
+    "id": "90e0cc2d-b3da-44bc-8f3a-8eec811250ee",
+    "name": "FGI – Silver",
+    "description": "Solo medaglie Ø50 per 1°–3°. Nessuna coppa.",
+    "podioMode": "classificata",
+    "hasParticipation": true,
+    "podioDiameterMm": 50,
+    "categories": [
+      {
+        "id": "7ca2f746-2a08-4b79-aa02-0189161c17c4",
+        "name": "SILVER",
+        "coppe": 0,
+        "medals": 3,
+        "diameterMm": 50,
+        "winnersPerPosition": 1,
+        "hasApparatus": false,
+        "apparatus": []
+      }
+    ],
+    "created_at": "2026-02-23T20:57:46.387Z"
+  },
+  {
+    "id": "c538412c-7e09-40e5-9ef1-4278721d7f6e",
+    "name": "UISP Emilia-Romagna – GAF",
+    "description": "Prime 3 coppe + medaglie Ø40. Include medaglie attrezzi.",
+    "podioMode": "classificata",
+    "hasParticipation": true,
+    "podioDiameterMm": 40,
+    "categories": [
+      {
+        "id": "bfad9606-1bdb-4344-8def-27db5f41f0f4",
+        "name": "LA3 GIOVANISSIME",
+        "coppe": 3,
+        "medals": 10,
+        "diameterMm": 40,
+        "winnersPerPosition": 1,
+        "hasApparatus": true,
+        "apparatus": [
+          {
+            "name": "VOLTEGGIO",
+            "qty": 3,
+            "enabled": true
+          },
+          {
+            "name": "PARALLELE",
+            "qty": 3,
+            "enabled": true
+          },
+          {
+            "name": "TRAVE",
+            "qty": 3,
+            "enabled": true
+          },
+          {
+            "name": "CORPO LIBERO",
+            "qty": 3,
+            "enabled": true
+          }
+        ]
+      }
+    ],
+    "created_at": "2026-02-23T20:57:46.387Z"
+  },
+  {
+    "name": "Hello",
+    "description": "hello description",
+    "podioMode": "classificato",
+    "hasParticipation": true,
+    "podioDiameterMm": 50,
+    "categories": [
+      {
+        "id": "1771880187512zbuwzg7jno",
+        "name": "Nuova Categoria",
+        "coppe": 3,
+        "medals": 5,
+        "diameterMm": 40,
+        "winnersPerPosition": 1,
+        "hasApparatus": false,
+        "apparatus": [
+          {
+            "name": "VOLTEGGIO",
+            "qty": 3,
+            "enabled": true
+          },
+          {
+            "name": "PARALLELE",
+            "qty": 3,
+            "enabled": true
+          },
+          {
+            "name": "TRAVE",
+            "qty": 3,
+            "enabled": true
+          },
+          {
+            "name": "CORPO LIBERO",
+            "qty": 3,
+            "enabled": true
+          }
+        ]
+      },
+      {
+        "id": "1771880214895zctwxhv025",
+        "name": "Nuova Categoria2",
+        "coppe": 3,
+        "medals": 5,
+        "diameterMm": 70,
+        "winnersPerPosition": 1,
+        "hasApparatus": false,
+        "apparatus": [
+          {
+            "name": "VOLTEGGIO",
+            "qty": 3,
+            "enabled": true
+          },
+          {
+            "name": "PARALLELE",
+            "qty": 3,
+            "enabled": true
+          },
+          {
+            "name": "TRAVE",
+            "qty": 3,
+            "enabled": true
+          },
+          {
+            "name": "CORPO LIBERO",
+            "qty": 3,
+            "enabled": true
+          }
+        ]
+      }
+    ],
+    "id": "3c0323e0-4472-4374-8b44-bfc9e2695e22",
+    "created_at": "2026-02-23T20:58:22.414Z"
+  }
+]
