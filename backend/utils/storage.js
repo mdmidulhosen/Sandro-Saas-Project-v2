@@ -2,7 +2,9 @@ const fs = require('fs');
 const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 
-const DATA_DIR = path.join(__dirname, '../data');
+const DATA_DIR = process.env.VERCEL
+  ? '/tmp'
+  : path.join(__dirname, '../data');
 const TEMPLATES_FILE = path.join(DATA_DIR, 'templates.json');
 
 function ensureDataDir() {
