@@ -53,7 +53,7 @@ export function generateAllLabels(config) {
 
     // Rectangular labels (trophies)
     for (let i = 1; i <= (cat.coppe || 0); i++) {
-      const widthCm = i === 1 ? 9.0 : i === 2 ? 8.5 : 8.0;
+      const widthCm = 9.0;
       for (let q = 0; q < qty; q++) {
         labels.push({
           type: 'rect',

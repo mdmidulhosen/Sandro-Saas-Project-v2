@@ -247,7 +247,7 @@ export default function RectLabel({
       {/* title line 2 */}
       {n2 && (
         <text
-          x={textCenter + 2}
+          x={textCenter + 4.5}
           y="12"
           textAnchor="middle"
           fontSize="4"
