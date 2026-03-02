@@ -126,6 +126,27 @@ const translations = {
     podio_classificata: '1° CLASSIFIED (f) / 2° / 3°',
     podio_classificato: '1° CLASSIFIED (m) / 2° / 3°',
     podio_fasce: 'GOLD BAND / SILVER / BRONZE',
+    podio_non_classificata: 'NON CLASSIFIED (f)',
+    podio_non_classificato: 'NON CLASSIFIED (m)',
+
+    // Template label style
+    tmpl_font_label: 'Label Font',
+    tmpl_font_default: 'Default (Futura)',
+    tmpl_label_width: 'Width (cm)',
+    tmpl_label_height: 'Height (cm)',
+    tmpl_label_size_section: 'Label Size',
+    tmpl_participation_date_label: 'Show date at bottom of medal',
+
+    // Apparatus
+    tmpl_apparatus_add: '+ Add',
+    tmpl_apparatus_name_ph: 'Apparatus name...',
+    tmpl_apparatus_preset_gaf: 'GAF',
+    tmpl_apparatus_preset_rg: 'Rhythmic',
+    tmpl_apparatus_preset_trampo: 'Trampoline',
+    tmpl_apparatus_remove: '✕',
+
+    // Generator
+    gen_spacing_label: 'Gap (mm)',
   },
 
   it: {
@@ -253,6 +274,27 @@ const translations = {
     podio_classificata: '1° CLASSIFICATA / 2° / 3°',
     podio_classificato: '1° CLASSIFICATO / 2° / 3°',
     podio_fasce: 'FASCIA ORO / ARGENTO / BRONZO',
+    podio_non_classificata: 'NON CLASSIFICATA',
+    podio_non_classificato: 'NON CLASSIFICATO',
+
+    // Template label style
+    tmpl_font_label: 'Font Etichetta',
+    tmpl_font_default: 'Default (Futura)',
+    tmpl_label_width: 'Larghezza (cm)',
+    tmpl_label_height: 'Altezza (cm)',
+    tmpl_label_size_section: 'Dimensione Etichetta',
+    tmpl_participation_date_label: 'Mostra data in basso sulla medaglia',
+
+    // Apparatus
+    tmpl_apparatus_add: '+ Aggiungi',
+    tmpl_apparatus_name_ph: 'Nome attrezzo...',
+    tmpl_apparatus_preset_gaf: 'GAF',
+    tmpl_apparatus_preset_rg: 'Ritmica',
+    tmpl_apparatus_preset_trampo: 'Trampolino',
+    tmpl_apparatus_remove: '✕',
+
+    // Generator
+    gen_spacing_label: 'Spazio (mm)',
   }
 };
 

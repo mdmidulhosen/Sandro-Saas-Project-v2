@@ -1,61 +1,77 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { templatesApi, excelApi } from '../utils/api';
-import { APPARATUS_LIST, newCategory, generateAllLabels, downloadSvgSheet, printAsPdf } from '../utils/labelUtils';
+import { newCategory, generateAllLabels, downloadSvgSheet, printAsPdf } from '../utils/labelUtils';
 import { useTranslation } from '../utils/i18n';
 import MedalLabel from '../components/labels/MedalLabel';
 import RetroLabel from '../components/labels/RetroLabel';
 import RectLabel from '../components/labels/RectLabel';
 
 const SHEET_SIZES = [
-  { key: 'A4P',   label: 'A4 Portrait (210×297mm)',  w: 210 },
-  { key: 'A4L',   label: 'A4 Landscape (297×210mm)', w: 297 },
-  { key: 'A3L',   label: 'A3 Landscape (420×297mm)', w: 420 },
-  { key: 'SRA3',  label: 'SRA3 (450×320mm)',          w: 450 },
-  { key: 'roll',  label: 'Plotter Roll (297mm)',       w: 297 },
-  { key: 'custom', label: 'Custom / Personalizzato',  w: null },
+  { key: 'A4P',    label: 'A4 Portrait (210×297mm)',  w: 210 },
+  { key: 'A4L',    label: 'A4 Landscape (297×210mm)', w: 297 },
+  { key: 'A3L',    label: 'A3 Landscape (420×297mm)', w: 420 },
+  { key: 'SRA3',   label: 'SRA3 (450×320mm)',          w: 450 },
+  { key: 'roll',   label: 'Plotter Roll (297mm)',       w: 297 },
+  { key: 'custom', label: 'Custom / Personalizzato',   w: null },
 ];
+
+const APPARATUS_PRESETS = {
+  gaf:    ['VOLTEGGIO', 'PARALLELE', 'TRAVE', 'CORPO LIBERO'],
+  ritmica: ['CERCHIO', 'PALLA', 'CORDA', 'NASTRO'],
+  trampo: ['TRAMPOLINO'],
+};
 
 export default function GeneratorPage() {
   const { t } = useTranslation();
   const [searchParams] = useSearchParams();
 
   const PODIO_MODES = [
-    { value: 'classificata', label: t('podio_classificata') },
-    { value: 'classificato', label: t('podio_classificato') },
-    { value: 'fasce', label: t('podio_fasce') }
+    { value: 'classificata',     label: t('podio_classificata') },
+    { value: 'classificato',     label: t('podio_classificato') },
+    { value: 'fasce',            label: t('podio_fasce') },
+    { value: 'non-classificata', label: t('podio_non_classificata') },
+    { value: 'non-classificato', label: t('podio_non_classificato') },
   ];
 
   // Event config
-  const [eventName, setEventName] = useState('1° PROVA CAMPIONATO REGIONALE FGI GAF');
-  const [locationDate, setLocationDate] = useState('Metato, 22 Febbraio 2026');
-  const [logoSrc, setLogoSrc] = useState('');
-  const [podioMode, setPodioMode] = useState('classificata');
+  const [eventName, setEventName]           = useState('1° PROVA CAMPIONATO REGIONALE FGI GAF');
+  const [locationDate, setLocationDate]     = useState('Metato, 22 Febbraio 2026');
+  const [logoSrc, setLogoSrc]               = useState('');
+  const [podioMode, setPodioMode]           = useState('classificata');
   const [hasParticipation, setHasParticipation] = useState(true);
+  const [participationDateBottom, setParticipationDateBottom] = useState(true);
   const [participationCount, setParticipationCount] = useState(1);
 
+  // Label style (from template)
+  const [fontFamily, setFontFamily]         = useState('');
+  const [labelWidthCm, setLabelWidthCm]     = useState(9.0);
+  const [labelHeightCm, setLabelHeightCm]   = useState(4.4);
+
   // Sheet / export
-  const [sheetSizeKey, setSheetSizeKey] = useState('A4P');
-  const [customW, setCustomW] = useState(297);
+  const [sheetSizeKey, setSheetSizeKey]     = useState('A4P');
+  const [customW, setCustomW]               = useState(297);
+  const [labelSpacingMm, setLabelSpacingMm] = useState(3);
 
   // Categories
-  const [categories, setCategories] = useState([newCategory()]);
+  const [categories, setCategories]         = useState([newCategory({ apparatus: [] })]);
+  const [newAppNames, setNewAppNames]       = useState({});
 
   // Templates
-  const [templates, setTemplates] = useState([]);
+  const [templates, setTemplates]           = useState([]);
   const [selectedTemplateId, setSelectedTemplateId] = useState('');
 
   // Labels preview
-  const [labels, setLabels] = useState([]);
-  const [activeGroup, setActiveGroup] = useState(null);
-  const previewRef = useRef(null);
+  const [labels, setLabels]                 = useState([]);
+  const [activeGroup, setActiveGroup]       = useState(null);
+  const previewRef                          = useRef(null);
 
   // Excel modal
   const [showExcelModal, setShowExcelModal] = useState(false);
-  const [excelHeaders, setExcelHeaders] = useState([]);
-  const [excelRows, setExcelRows] = useState([]);
-  const [colMap, setColMap] = useState({ category: '', coppe: '', medals: '', diameter: '', winners: '' });
-  const [excelLoading, setExcelLoading] = useState(false);
+  const [excelHeaders, setExcelHeaders]     = useState([]);
+  const [excelRows, setExcelRows]           = useState([]);
+  const [colMap, setColMap]                 = useState({ category: '', coppe: '', medals: '', diameter: '', winners: '' });
+  const [excelLoading, setExcelLoading]     = useState(false);
 
   useEffect(() => {
     templatesApi.getAll().then(setTemplates).catch(() => {});
@@ -74,14 +90,17 @@ export default function GeneratorPage() {
     if (!tmpl) return;
     setPodioMode(tmpl.podioMode || 'classificata');
     setHasParticipation(tmpl.hasParticipation !== false);
+    setParticipationDateBottom(tmpl.participationDateBottom !== false);
     if (tmpl.logoSrc) setLogoSrc(tmpl.logoSrc);
+    setFontFamily(tmpl.fontFamily || '');
+    setLabelWidthCm(tmpl.labelWidthCm || 9.0);
+    setLabelHeightCm(tmpl.labelHeightCm || 4.4);
     setCategories((tmpl.categories || []).map(c => ({
       ...newCategory(),
       ...c,
-      apparatus: (c.apparatus && c.apparatus.length > 0)
-        ? c.apparatus
-        : APPARATUS_LIST.map(name => ({ name, qty: 3, enabled: false }))
+      apparatus: Array.isArray(c.apparatus) ? c.apparatus : []
     })));
+    setNewAppNames({});
   }
 
   function handleTemplateSelect(e) {
@@ -99,7 +118,7 @@ export default function GeneratorPage() {
   }
 
   function addCategory() {
-    setCategories(prev => [...prev, newCategory({ name: 'Nuova Categoria' })]);
+    setCategories(prev => [...prev, newCategory({ name: 'Nuova Categoria', apparatus: [] })]);
   }
 
   function removeCategory(idx) {
@@ -111,7 +130,7 @@ export default function GeneratorPage() {
       const cats = [...prev];
       cats[idx] = { ...cats[idx], [field]: value };
       if (field === 'hasApparatus' && value && (!cats[idx].apparatus || cats[idx].apparatus.length === 0)) {
-        cats[idx].apparatus = APPARATUS_LIST.map(name => ({ name, qty: 3, enabled: true }));
+        cats[idx].apparatus = [];
       }
       return cats;
     });
@@ -127,14 +146,59 @@ export default function GeneratorPage() {
     });
   }
 
+  function addApparatus(catIdx) {
+    const name = (newAppNames[catIdx] || '').trim().toUpperCase();
+    if (!name) return;
+    setCategories(prev => {
+      const cats = [...prev];
+      const existing = cats[catIdx].apparatus.map(a => a.name);
+      if (existing.includes(name)) return prev;
+      cats[catIdx] = {
+        ...cats[catIdx],
+        apparatus: [...cats[catIdx].apparatus, { name, qty: 3, enabled: true }]
+      };
+      return cats;
+    });
+    setNewAppNames(prev => ({ ...prev, [catIdx]: '' }));
+  }
+
+  function removeApparatus(catIdx, appIdx) {
+    setCategories(prev => {
+      const cats = [...prev];
+      cats[catIdx] = {
+        ...cats[catIdx],
+        apparatus: cats[catIdx].apparatus.filter((_, i) => i !== appIdx)
+      };
+      return cats;
+    });
+  }
+
+  function addApparatusPreset(catIdx, preset) {
+    const names = APPARATUS_PRESETS[preset] || [];
+    setCategories(prev => {
+      const cats = [...prev];
+      const existing = cats[catIdx].apparatus.map(a => a.name);
+      const toAdd = names
+        .filter(n => !existing.includes(n))
+        .map(n => ({ name: n, qty: 3, enabled: true }));
+      cats[catIdx] = {
+        ...cats[catIdx],
+        apparatus: [...cats[catIdx].apparatus, ...toAdd]
+      };
+      return cats;
+    });
+  }
+
   function getSheetW() {
     if (sheetSizeKey === 'custom') return Math.max(50, customW || 297);
     return SHEET_SIZES.find(s => s.key === sheetSizeKey)?.w || 297;
   }
 
   const getConfig = useCallback(() => ({
-    eventName, locationDate, logoSrc, podioMode, hasParticipation, participationCount, categories
-  }), [eventName, locationDate, logoSrc, podioMode, hasParticipation, participationCount, categories]);
+    eventName, locationDate, logoSrc, podioMode,
+    hasParticipation, participationDateBottom, participationCount,
+    categories, fontFamily, labelWidthCm, labelHeightCm
+  }), [eventName, locationDate, logoSrc, podioMode, hasParticipation, participationDateBottom, participationCount, categories, fontFamily, labelWidthCm, labelHeightCm]);
 
   function generate(group) {
     const all = generateAllLabels(getConfig());
@@ -147,13 +211,13 @@ export default function GeneratorPage() {
 
   function handleDownloadSvg() {
     if (previewRef.current) {
-      downloadSvgSheet(previewRef.current, `etichette-${activeGroup || 'tutte'}.svg`, getSheetW());
+      downloadSvgSheet(previewRef.current, `etichette-${activeGroup || 'tutte'}.svg`, getSheetW(), labelSpacingMm);
     }
   }
 
   function handlePrintPdf() {
     if (previewRef.current) {
-      printAsPdf(previewRef.current, getSheetW());
+      printAsPdf(previewRef.current, getSheetW(), labelSpacingMm);
     }
   }
 
@@ -192,7 +256,8 @@ export default function GeneratorPage() {
           coppe: parseInt(getVal(row, colMap.coppe)) || 3,
           medals: parseInt(getVal(row, colMap.medals)) || 5,
           diameterMm: parseInt(getVal(row, colMap.diameter)) || 40,
-          winnersPerPosition: parseInt(getVal(row, colMap.winners)) || 1
+          winnersPerPosition: parseInt(getVal(row, colMap.winners)) || 1,
+          apparatus: []
         });
       })
       .filter(Boolean);
@@ -211,7 +276,16 @@ export default function GeneratorPage() {
           <RetroLabel category={label.category} subCategory={label.subCategory} position={label.position} locationDate={label.locationDate} diameterMm={label.diameterMm} />
         )}
         {label.type === 'rect' && (
-          <RectLabel competitionName={label.competitionName} category={label.category} position={label.position} locationDate={label.locationDate} logoSrc={logoSrc} widthCm={label.widthCm} />
+          <RectLabel
+            competitionName={label.competitionName}
+            category={label.category}
+            position={label.position}
+            locationDate={label.locationDate}
+            logoSrc={logoSrc}
+            widthCm={label.widthCm}
+            heightCm={label.heightCm}
+            fontFamily={label.fontFamily}
+          />
         )}
         <div className="label-tag">{label.tag}</div>
       </div>
@@ -267,12 +341,18 @@ export default function GeneratorPage() {
             <input type="checkbox" checked={hasParticipation} onChange={e => setHasParticipation(e.target.checked)} />
           </div>
           {hasParticipation && (
-            <div className="field">
-              <label>{t('gen_participation_count')}</label>
-              <input type="number" min="1" max="9999" value={participationCount}
-                onChange={e => setParticipationCount(parseInt(e.target.value) || 1)}
-                style={{ width: 100 }} />
-            </div>
+            <>
+              <div className="field field-checkbox">
+                <label>{t('tmpl_participation_date_label')}</label>
+                <input type="checkbox" checked={participationDateBottom} onChange={e => setParticipationDateBottom(e.target.checked)} />
+              </div>
+              <div className="field">
+                <label>{t('gen_participation_count')}</label>
+                <input type="number" min="1" max="9999" value={participationCount}
+                  onChange={e => setParticipationCount(parseInt(e.target.value) || 1)}
+                  style={{ width: 100 }} />
+              </div>
+            </>
           )}
           {logoSrc && (
             <div className="field">
@@ -325,17 +405,43 @@ export default function GeneratorPage() {
               </div>
 
               {cat.hasApparatus && (
-                <div className="apparatus-row">
-                  {(cat.apparatus || []).map((app, ai) => (
-                    <div key={app.name} className="app-chip">
-                      <label>
-                        <input type="checkbox" checked={app.enabled} onChange={e => updateApparatus(i, ai, 'enabled', e.target.checked)} />
-                        {app.name}
-                      </label>
-                      <input type="number" min="1" max="20" value={app.qty} disabled={!app.enabled}
-                        onChange={e => updateApparatus(i, ai, 'qty', parseInt(e.target.value) || 1)} style={{ width: 50 }} />
-                    </div>
-                  ))}
+                <div className="apparatus-section">
+                  {/* Preset buttons */}
+                  <div className="apparatus-presets">
+                    <span style={{ fontSize: 11, color: '#888', marginRight: 6 }}>Preset:</span>
+                    <button type="button" className="btn btn-xs btn-outline" onClick={() => addApparatusPreset(i, 'gaf')}>{t('tmpl_apparatus_preset_gaf')}</button>
+                    <button type="button" className="btn btn-xs btn-outline" onClick={() => addApparatusPreset(i, 'ritmica')}>{t('tmpl_apparatus_preset_rg')}</button>
+                    <button type="button" className="btn btn-xs btn-outline" onClick={() => addApparatusPreset(i, 'trampo')}>{t('tmpl_apparatus_preset_trampo')}</button>
+                  </div>
+
+                  {/* Added apparatus list */}
+                  <div className="apparatus-row">
+                    {(cat.apparatus || []).map((app, ai) => (
+                      <div key={ai} className="app-chip">
+                        <input
+                          value={app.name}
+                          onChange={e => updateApparatus(i, ai, 'name', e.target.value.toUpperCase())}
+                          style={{ width: 110, fontSize: 12 }}
+                        />
+                        <input type="number" min="1" max="20" value={app.qty}
+                          onChange={e => updateApparatus(i, ai, 'qty', parseInt(e.target.value) || 1)}
+                          style={{ width: 46 }} />
+                        <button className="btn btn-xs btn-danger" onClick={() => removeApparatus(i, ai)}>{t('tmpl_apparatus_remove')}</button>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Add new */}
+                  <div className="apparatus-add-row">
+                    <input
+                      value={newAppNames[i] || ''}
+                      onChange={e => setNewAppNames(prev => ({ ...prev, [i]: e.target.value }))}
+                      placeholder={t('tmpl_apparatus_name_ph')}
+                      onKeyDown={e => e.key === 'Enter' && addApparatus(i)}
+                      style={{ fontSize: 12, width: 180 }}
+                    />
+                    <button className="btn btn-sm btn-outline" onClick={() => addApparatus(i)}>{t('tmpl_apparatus_add')}</button>
+                  </div>
                 </div>
               )}
             </div>
@@ -373,6 +479,13 @@ export default function GeneratorPage() {
                     <span className="sheet-size-label">mm</span>
                   </>
                 )}
+                <span className="sheet-size-label" style={{ marginLeft: 12 }}>{t('gen_spacing_label')}:</span>
+                <input
+                  type="number" min="0" max="30" value={labelSpacingMm}
+                  onChange={e => setLabelSpacingMm(parseInt(e.target.value) || 0)}
+                  className="sheet-size-input"
+                  style={{ width: 56 }}
+                />
               </div>
               <button className="btn btn-accent" onClick={handleDownloadSvg}>{t('gen_download_svg')}</button>
               <button className="btn btn-outline" onClick={handlePrintPdf}>{t('gen_download_pdf')}</button>
@@ -429,7 +542,7 @@ export default function GeneratorPage() {
                     </tbody>
                   </table>
                   {excelRows.length > 5 && (
-                    <p className="table-more">… {t('excel_more_rows').replace('altre ', '')} {excelRows.length - 5} {t('excel_more_rows').includes('altre') ? t('excel_rows') : t('excel_rows')}</p>
+                    <p className="table-more">… {excelRows.length - 5} {t('excel_rows')}</p>
                   )}
                 </div>
               )}

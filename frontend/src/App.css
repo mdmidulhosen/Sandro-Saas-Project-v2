@@ -362,13 +362,37 @@
   text-align: center;
 }
 
+.apparatus-section {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border2);
+}
+
+.apparatus-presets {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.apparatus-add-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.btn-xs {
+  padding: 2px 8px;
+  font-size: 11px;
+  border-radius: 4px;
+}
+
 .apparatus-row {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  margin-top: 10px;
-  padding-top: 10px;
-  border-top: 1px solid var(--border2);
+  margin-top: 4px;
 }
 
 .app-chip {

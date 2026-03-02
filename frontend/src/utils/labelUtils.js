@@ -6,6 +6,7 @@ export function getPodioLabel(n, mode) {
     if (n === 2) return 'FASCIA ARGENTO';
     return 'FASCIA BRONZO';
   }
+  if (mode === 'non-classificata' || mode === 'non-classificato') return 'PARTECIPANTE';
   if (mode === 'classificato') return `${n}° CLASSIFICATO`;
   return `${n}° CLASSIFICATA`;
 }
@@ -31,7 +32,11 @@ export function newCategory(overrides = {}) {
 
 // Generate all label descriptors for a given config
 export function generateAllLabels(config) {
-  const { eventName, locationDate, podioMode, hasParticipation, participationCount = 1, categories } = config;
+  const {
+    eventName, locationDate, podioMode, hasParticipation,
+    participationCount = 1, participationDateBottom = true,
+    categories, fontFamily = '', labelWidthCm = 9.0, labelHeightCm = 4.4
+  } = config;
   const labels = [];
 
   if (hasParticipation) {
@@ -41,7 +46,7 @@ export function generateAllLabels(config) {
         type: 'medal-front',
         group: 'partecipazione',
         topText: eventName,
-        bottomText: locationDate,
+        bottomText: participationDateBottom ? locationDate : '',
         diameterMm: 25,
         tag: 'PARTECIPAZIONE Ø 25mm'
       });
@@ -53,7 +58,6 @@ export function generateAllLabels(config) {
 
     // Rectangular labels (trophies)
     for (let i = 1; i <= (cat.coppe || 0); i++) {
-      const widthCm = 9.0;
       for (let q = 0; q < qty; q++) {
         labels.push({
           type: 'rect',
@@ -62,9 +66,11 @@ export function generateAllLabels(config) {
           category: cat.name,
           position: getPodioLabel(i, podioMode),
           locationDate,
-          widthCm,
+          widthCm: labelWidthCm,
+          heightCm: labelHeightCm,
+          fontFamily,
           posNum: i,
-          tag: `COPPA ${widthCm}cm – ${cat.name}`
+          tag: `COPPA ${labelWidthCm}cm – ${cat.name}`
         });
       }
     }
@@ -139,11 +145,11 @@ export function generateAllLabels(config) {
 }
 
 // Build SVG sheet string from all SVGs inside a container
-export function buildSheetSvgString(containerEl, sheetW = 297) {
+export function buildSheetSvgString(containerEl, sheetW = 297, spacingMm = 5) {
   const svgs = Array.from(containerEl.querySelectorAll('svg'));
   if (svgs.length === 0) return '';
 
-  const SPACING = 5;
+  const SPACING = spacingMm;
   let x = SPACING, y = SPACING, rowH = 0, totalH = SPACING;
   const positions = [];
 
@@ -176,8 +182,8 @@ export function buildSheetSvgString(containerEl, sheetW = 297) {
 }
 
 // Download the preview container as SVG sheet
-export function downloadSvgSheet(containerEl, filename = 'etichette.svg', sheetW = 297) {
-  const out = buildSheetSvgString(containerEl, sheetW);
+export function downloadSvgSheet(containerEl, filename = 'etichette.svg', sheetW = 297, spacingMm = 5) {
+  const out = buildSheetSvgString(containerEl, sheetW, spacingMm);
   if (!out) return;
   const blob = new Blob([out], { type: 'image/svg+xml' });
   const url = URL.createObjectURL(blob);
@@ -191,8 +197,8 @@ export function downloadSvgSheet(containerEl, filename = 'etichette.svg', sheetW
 }
 
 // Open print dialog with correct @page size for PDF export
-export function printAsPdf(containerEl, sheetW = 297) {
-  const svgStr = buildSheetSvgString(containerEl, sheetW);
+export function printAsPdf(containerEl, sheetW = 297, spacingMm = 5) {
+  const svgStr = buildSheetSvgString(containerEl, sheetW, spacingMm);
   if (!svgStr) return;
   const hMatch = svgStr.match(/height="([\d.]+)mm"/);
   const totalH = hMatch ? parseFloat(hMatch[1]) : 420;

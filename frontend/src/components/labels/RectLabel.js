@@ -89,7 +89,7 @@
 //         textAnchor="end"
 //         fontSize="5"
 //         fontWeight="bold"
-//         fontFamily={FONT}
+//         fontFamily={activeFont}
 //         fill="black"
 //         {...compress(name1, 5, tl)}
 //       >
@@ -104,7 +104,7 @@
 //           textAnchor="end"
 //           fontSize="5"
 //           fontWeight="bold"
-//           fontFamily={FONT}
+//           fontFamily={activeFont}
 //           fill="black"
 //           {...compress(name2, 5, tl)}
 //         >
@@ -119,7 +119,7 @@
 //         textAnchor="end"
 //         fontSize="6.5"
 //         fontWeight="700"
-//         fontFamily={FONT}
+//         fontFamily={activeFont}
 //         fill="black"
 //         {...compress(category, 6.5, tl)}
 //       >
@@ -133,7 +133,7 @@
 //         textAnchor="end"
 //         fontSize="12"
 //         fontWeight="900"
-//         fontFamily={FONT}
+//         fontFamily={activeFont}
 //         fill="black"
 //         {...compress(position.toUpperCase(), 12, tl)}
 //       >
@@ -146,7 +146,7 @@
 //         y={yDate}
 //         textAnchor="end"
 //         fontSize="3.5"
-//         fontFamily={FONT}
+//         fontFamily={activeFont}
 //         fill="black"
 //       >
 //         {locationDate}
@@ -184,9 +184,12 @@ export default function RectLabel({
   locationDate = "",
   logoSrc = "",
   widthCm = 9.0,
+  heightCm = 4.4,
+  fontFamily = "",
 }) {
   const w = widthCm * 10;
   const h = 44;
+  const activeFont = fontFamily || FONT;
 
   const padding = 4;
   const logoSize = 18;
@@ -203,7 +206,7 @@ export default function RectLabel({
   return (
     <svg
       width={`${widthCm}cm`}
-      height="4.4cm"
+      height={`${heightCm}cm`}
       viewBox={`0 0 ${w} ${h}`}
       xmlns="http://www.w3.org/2000/svg"
     >
@@ -238,7 +241,7 @@ export default function RectLabel({
         textAnchor="middle"
         fontSize="4"
         fontWeight="800"
-        fontFamily={FONT}
+        fontFamily={activeFont}
         {...compress(n1, 5, textWidth)}
       >
         {n1}
@@ -252,7 +255,7 @@ export default function RectLabel({
           textAnchor="middle"
           fontSize="4"
           fontWeight="800"
-          fontFamily={FONT}
+          fontFamily={activeFont}
           {...compress(n2, 5, textWidth)}
         >
           {n2}
@@ -266,7 +269,7 @@ export default function RectLabel({
         textAnchor="middle"
         fontSize="8"
         fontWeight="400"
-        fontFamily={FONT}
+        fontFamily={activeFont}
         {...compress(category, 7, textWidth)}
       >
         {category}
@@ -279,7 +282,7 @@ export default function RectLabel({
         textAnchor="middle"
         fontSize="12"
         fontWeight="900"
-        fontFamily={FONT}
+        fontFamily={activeFont}
         {...compress(position.toUpperCase(), 14, textWidth)}
       >
         {position.toUpperCase()}
@@ -291,7 +294,7 @@ export default function RectLabel({
         y={h - 3}
         textAnchor="end"
         fontSize="3.2"
-        fontFamily={FONT}
+        fontFamily={activeFont}
         fontStyle={"italic"}
       >
         {locationDate}
