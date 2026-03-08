@@ -16,8 +16,8 @@ const FONT_OPTIONS = [
 ];
 
 const APPARATUS_PRESETS = {
-  gaf: ['VOLTEGGIO', 'PARALLELE', 'TRAVE', 'CORPO LIBERO'],
-  ritmica: ['CERCHIO', 'PALLA', 'CORDA', 'NASTRO'],
+  gaf:    ['CORPO LIBERO', 'PARALLELE', 'VOLTEGGIO', 'TRAMPOLINO', 'TRAVE'],
+  ritmica: ['CORPO LIBERO', 'PALLA', 'NASTRO', 'MAZZE', 'CORDA', 'CERCHIO'],
   trampo: ['TRAMPOLINO'],
 };
 
@@ -31,8 +31,9 @@ function emptyTemplate() {
     podioDiameterMm: 40,
     logoSrc: '',
     fontFamily: '',
-    labelWidthCm: 9.0,
-    labelHeightCm: 4.4,
+    labelWidthCm: null,   // null = use position-based defaults
+    labelHeightCm: null,
+    customPodioTexts: { 1: '', 2: '', 3: '' },
     categories: [newCategory({ apparatus: [] })]
   };
 }
@@ -85,8 +86,9 @@ export default function TemplatesPage() {
       podioDiameterMm: tmpl.podioDiameterMm || 40,
       logoSrc: tmpl.logoSrc || '',
       fontFamily: tmpl.fontFamily || '',
-      labelWidthCm: tmpl.labelWidthCm || 9.0,
-      labelHeightCm: tmpl.labelHeightCm || 4.4,
+      labelWidthCm: tmpl.labelWidthCm || null,
+      labelHeightCm: tmpl.labelHeightCm || null,
+      customPodioTexts: tmpl.customPodioTexts || { 1: '', 2: '', 3: '' },
       categories: (tmpl.categories || []).map(c => ({
         ...newCategory(),
         ...c,
@@ -319,23 +321,40 @@ export default function TemplatesPage() {
                   </select>
                 </div>
                 <div className="field">
-                  <label>{t('tmpl_label_width')}</label>
+                  <label>{t('tmpl_label_width')} <small style={{color:'#888'}}>(default: 5.5/5.0/4.5)</small></label>
                   <input
-                    type="number" min="5" max="30" step="0.5"
-                    value={form.labelWidthCm}
-                    onChange={e => updateForm('labelWidthCm', parseFloat(e.target.value) || 9.0)}
+                    type="number" min="2" max="30" step="0.5"
+                    value={form.labelWidthCm || ''}
+                    placeholder="auto"
+                    onChange={e => updateForm('labelWidthCm', e.target.value ? parseFloat(e.target.value) : null)}
                     style={{ width: 80 }}
                   />
                 </div>
                 <div className="field">
-                  <label>{t('tmpl_label_height')}</label>
+                  <label>{t('tmpl_label_height')} <small style={{color:'#888'}}>(default: 2.3)</small></label>
                   <input
-                    type="number" min="2" max="15" step="0.1"
-                    value={form.labelHeightCm}
-                    onChange={e => updateForm('labelHeightCm', parseFloat(e.target.value) || 4.4)}
+                    type="number" min="1" max="15" step="0.1"
+                    value={form.labelHeightCm || ''}
+                    placeholder="auto"
+                    onChange={e => updateForm('labelHeightCm', e.target.value ? parseFloat(e.target.value) : null)}
                     style={{ width: 80 }}
                   />
                 </div>
+              </div>
+
+              {/* Custom podio texts */}
+              <div className="section-title">{t('tmpl_custom_podio_section')}</div>
+              <div className="form-row">
+                {[1, 2, 3].map(pos => (
+                  <div className="field" key={pos}>
+                    <label>{pos === 1 ? t('tmpl_custom_podio_1') : pos === 2 ? t('tmpl_custom_podio_2') : t('tmpl_custom_podio_3')}</label>
+                    <input
+                      value={form.customPodioTexts?.[pos] || ''}
+                      placeholder={t('tmpl_custom_podio_ph')}
+                      onChange={e => updateForm('customPodioTexts', { ...form.customPodioTexts, [pos]: e.target.value })}
+                    />
+                  </div>
+                ))}
               </div>
 
               {/* Categories */}

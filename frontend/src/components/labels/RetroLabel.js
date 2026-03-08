@@ -5,7 +5,6 @@ export default function RetroLabel({ category = '', subCategory = '', position =
   const S = 200;
   const cx = 100, cy = 100;
   const r = 93;
-  const ri = 77;
 
   const hasSubCat = Boolean(subCategory);
   const lineCount = hasSubCat ? 4 : 3;
@@ -28,10 +27,8 @@ export default function RetroLabel({ category = '', subCategory = '', position =
     >
       {/* White background */}
       <circle cx={cx} cy={cy} r={r} fill="white" />
-      {/* Outer ring */}
+      {/* Single ring – cutting line */}
       <circle cx={cx} cy={cy} r={r} fill="none" stroke={RING_COLOR} strokeWidth="3.5" />
-      {/* Inner decorative ring */}
-      <circle cx={cx} cy={cy} r={ri} fill="none" stroke={RING_COLOR} strokeWidth="1.5" />
 
       {/* Category name */}
       <text x={cx} y={y} textAnchor="middle" fontSize={catFs} fontWeight="900"

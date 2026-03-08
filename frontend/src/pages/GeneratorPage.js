@@ -17,8 +17,8 @@ const SHEET_SIZES = [
 ];
 
 const APPARATUS_PRESETS = {
-  gaf:    ['VOLTEGGIO', 'PARALLELE', 'TRAVE', 'CORPO LIBERO'],
-  ritmica: ['CERCHIO', 'PALLA', 'CORDA', 'NASTRO'],
+  gaf:    ['CORPO LIBERO', 'PARALLELE', 'VOLTEGGIO', 'TRAMPOLINO', 'TRAVE'],
+  ritmica: ['CORPO LIBERO', 'PALLA', 'NASTRO', 'MAZZE', 'CORDA', 'CERCHIO'],
   trampo: ['TRAMPOLINO'],
 };
 
@@ -45,8 +45,9 @@ export default function GeneratorPage() {
 
   // Label style (from template)
   const [fontFamily, setFontFamily]         = useState('');
-  const [labelWidthCm, setLabelWidthCm]     = useState(9.0);
-  const [labelHeightCm, setLabelHeightCm]   = useState(4.4);
+  const [labelWidthCm, setLabelWidthCm]     = useState(null);   // null = position-based defaults
+  const [labelHeightCm, setLabelHeightCm]   = useState(null);
+  const [customPodioTexts, setCustomPodioTexts] = useState({ 1: '', 2: '', 3: '' });
 
   // Sheet / export
   const [sheetSizeKey, setSheetSizeKey]     = useState('A4P');
@@ -93,8 +94,9 @@ export default function GeneratorPage() {
     setParticipationDateBottom(tmpl.participationDateBottom !== false);
     if (tmpl.logoSrc) setLogoSrc(tmpl.logoSrc);
     setFontFamily(tmpl.fontFamily || '');
-    setLabelWidthCm(tmpl.labelWidthCm || 9.0);
-    setLabelHeightCm(tmpl.labelHeightCm || 4.4);
+    setLabelWidthCm(tmpl.labelWidthCm || null);
+    setLabelHeightCm(tmpl.labelHeightCm || null);
+    setCustomPodioTexts(tmpl.customPodioTexts || { 1: '', 2: '', 3: '' });
     setCategories((tmpl.categories || []).map(c => ({
       ...newCategory(),
       ...c,
@@ -197,8 +199,8 @@ export default function GeneratorPage() {
   const getConfig = useCallback(() => ({
     eventName, locationDate, logoSrc, podioMode,
     hasParticipation, participationDateBottom, participationCount,
-    categories, fontFamily, labelWidthCm, labelHeightCm
-  }), [eventName, locationDate, logoSrc, podioMode, hasParticipation, participationDateBottom, participationCount, categories, fontFamily, labelWidthCm, labelHeightCm]);
+    categories, fontFamily, labelWidthCm, labelHeightCm, customPodioTexts
+  }), [eventName, locationDate, logoSrc, podioMode, hasParticipation, participationDateBottom, participationCount, categories, fontFamily, labelWidthCm, labelHeightCm, customPodioTexts]);
 
   function generate(group) {
     const all = generateAllLabels(getConfig());
@@ -253,10 +255,10 @@ export default function GeneratorPage() {
         if (!name) return null;
         return newCategory({
           name,
-          coppe: parseInt(getVal(row, colMap.coppe)) || 3,
-          medals: parseInt(getVal(row, colMap.medals)) || 5,
-          diameterMm: parseInt(getVal(row, colMap.diameter)) || 40,
-          winnersPerPosition: parseInt(getVal(row, colMap.winners)) || 1,
+          coppe:             colMap.coppe    ? (parseInt(getVal(row, colMap.coppe))    || 0) : 0,
+          medals:            colMap.medals   ? (parseInt(getVal(row, colMap.medals))   || 0) : 0,
+          diameterMm:        colMap.diameter ? (parseInt(getVal(row, colMap.diameter)) || 40) : 40,
+          winnersPerPosition: colMap.winners ? (parseInt(getVal(row, colMap.winners))  || 1) : 1,
           apparatus: []
         });
       })
@@ -270,7 +272,7 @@ export default function GeneratorPage() {
     return (
       <div className="label-wrapper" key={`${label.type}-${idx}`}>
         {label.type === 'medal-front' && (
-          <MedalLabel topText={label.topText} bottomText={label.bottomText} logoSrc={logoSrc} diameterMm={label.diameterMm} />
+          <MedalLabel topText={label.topText} bottomText={label.bottomText} logoSrc={logoSrc} diameterMm={label.diameterMm} textPosition={label.textPosition || 'inside'} />
         )}
         {label.type === 'medal-back' && (
           <RetroLabel category={label.category} subCategory={label.subCategory} position={label.position} locationDate={label.locationDate} diameterMm={label.diameterMm} />
@@ -336,6 +338,16 @@ export default function GeneratorPage() {
               {PODIO_MODES.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
             </select>
           </div>
+          {[1, 2, 3].map(pos => (
+            <div className="field" key={pos}>
+              <label>{pos === 1 ? t('tmpl_custom_podio_1') : pos === 2 ? t('tmpl_custom_podio_2') : t('tmpl_custom_podio_3')}</label>
+              <input
+                value={customPodioTexts[pos] || ''}
+                placeholder={t('tmpl_custom_podio_ph')}
+                onChange={e => setCustomPodioTexts(prev => ({ ...prev, [pos]: e.target.value }))}
+              />
+            </div>
+          ))}
           <div className="field field-checkbox">
             <label>{t('gen_participation_label')}</label>
             <input type="checkbox" checked={hasParticipation} onChange={e => setHasParticipation(e.target.checked)} />
