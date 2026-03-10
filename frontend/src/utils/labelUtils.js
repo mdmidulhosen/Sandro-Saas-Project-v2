@@ -31,11 +31,19 @@ export function newCategory(overrides = {}) {
 }
 
 // Generate all label descriptors for a given config
+// Default label sizes by position (cm)
+function getLabelSize(templateW, templateH) {
+  const w = templateW || 9.0;
+  const h = templateH || 4.4;
+  return { w, h };
+}
+
 export function generateAllLabels(config) {
   const {
     eventName, locationDate, podioMode, hasParticipation,
     participationCount = 1, participationDateBottom = true,
-    categories, fontFamily = '', labelWidthCm = 9.0, labelHeightCm = 4.4
+    categories, fontFamily = '', labelWidthCm = null, labelHeightCm = null,
+    customPodioTexts = {}
   } = config;
   const labels = [];
 
@@ -58,25 +66,28 @@ export function generateAllLabels(config) {
 
     // Rectangular labels (trophies)
     for (let i = 1; i <= (cat.coppe || 0); i++) {
+      const posText = customPodioTexts[i] || getPodioLabel(i, podioMode);
+      const { w: lw, h: lh } = getLabelSize(labelWidthCm, labelHeightCm);
       for (let q = 0; q < qty; q++) {
         labels.push({
           type: 'rect',
           group: 'coppe',
           competitionName: eventName,
           category: cat.name,
-          position: getPodioLabel(i, podioMode),
+          position: posText,
           locationDate,
-          widthCm: labelWidthCm,
-          heightCm: labelHeightCm,
+          widthCm: lw,
+          heightCm: lh,
           fontFamily,
           posNum: i,
-          tag: `COPPA ${labelWidthCm}cm – ${cat.name}`
+          tag: `COPPA ${lw}cm – ${cat.name} – ${posText}`
         });
       }
     }
 
     // Podio medals
     for (let i = 1; i <= (cat.medals || 0); i++) {
+      const posText = customPodioTexts[i] || getPodioLabel(i, podioMode);
       // Front medal (only for Ø70mm; smaller sizes share the participation front)
       if (cat.diameterMm === 70) {
         for (let q = 0; q < qty; q++) {
@@ -96,11 +107,11 @@ export function generateAllLabels(config) {
           group: 'medaglie',
           category: cat.name,
           subCategory: '',
-          position: getPodioLabel(i, podioMode),
+          position: posText,
           locationDate,
           diameterMm: cat.diameterMm,
           posNum: i,
-          tag: `RETRO Ø${cat.diameterMm}mm – ${cat.name}${cat.diameterMm !== 70 ? ' (fronte: Ø25mm)' : ''}`
+          tag: `RETRO Ø${cat.diameterMm}mm – ${cat.name} – ${posText}`
         });
       }
     }
@@ -111,6 +122,7 @@ export function generateAllLabels(config) {
         const appQty = Math.max(1, parseInt(app.qty) || 3);
         for (let j = 1; j <= appQty; j++) {
           const winnersQty = Math.max(1, qty);
+          const appPosText = customPodioTexts[j] || getPodioLabel(j, podioMode);
           if (cat.diameterMm === 70) {
             for (let q = 0; q < winnersQty; q++) {
               labels.push({
@@ -129,11 +141,11 @@ export function generateAllLabels(config) {
               group: 'medaglie',
               category: cat.name,
               subCategory: app.name,
-              position: getPodioLabel(j, podioMode),
+              position: appPosText,
               locationDate,
               diameterMm: cat.diameterMm,
               posNum: j,
-              tag: `RETRO Ø${cat.diameterMm}mm – ${cat.name} ${app.name}`
+              tag: `RETRO Ø${cat.diameterMm}mm – ${cat.name} ${app.name} – ${appPosText}`
             });
           }
         }

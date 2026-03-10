@@ -147,6 +147,13 @@ const translations = {
 
     // Generator
     gen_spacing_label: 'Gap (mm)',
+
+    // Custom podio texts
+    tmpl_custom_podio_section: 'Custom Podium Text (optional)',
+    tmpl_custom_podio_1: '1st place override',
+    tmpl_custom_podio_2: '2nd place override',
+    tmpl_custom_podio_3: '3rd+ place override',
+    tmpl_custom_podio_ph: 'Leave empty to use default',
   },
 
   it: {
@@ -295,6 +302,13 @@ const translations = {
 
     // Generator
     gen_spacing_label: 'Spazio (mm)',
+
+    // Custom podio texts
+    tmpl_custom_podio_section: 'Testo Podio Personalizzato (opzionale)',
+    tmpl_custom_podio_1: 'Override 1° posto',
+    tmpl_custom_podio_2: 'Override 2° posto',
+    tmpl_custom_podio_3: 'Override 3° posto+',
+    tmpl_custom_podio_ph: 'Lascia vuoto per usare il default',
   }
 };
 
