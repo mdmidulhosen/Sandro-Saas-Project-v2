@@ -83,8 +83,9 @@ export default function RetroLabel({
           fontWeight="700"
           textAnchor="middle"
           letterSpacing="2"
+          dy="4"
         >
-          <textPath href={`#${uid}-a1`} startOffset="50%">
+          <textPath href={`#${uid}-a1`} startOffset="50%" dy="12">
             {category.toUpperCase()}
           </textPath>
         </text>
