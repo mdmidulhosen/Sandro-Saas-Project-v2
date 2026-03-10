@@ -4,7 +4,6 @@ const RING_COLOR = "#e0007a";
 const BG_COLOR = "transparent";
 const TEXT_C1 = "#cccccc"; // category (outer top arc) and date (bottom arc)
 const TEXT_C2 = "#888888"; // subCategory (inner top arc)
-const TEXT_POS = "#ffffff"; // position number (centre)
 const FONT = "Oswald, Futura, 'Arial Narrow', Arial, sans-serif";
 
 // Font sizes scaled to 200×200 viewBox
