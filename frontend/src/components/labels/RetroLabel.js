@@ -45,8 +45,16 @@ export default function RetroLabel({
   const hasSub = Boolean(subCategory);
   const hasDate = Boolean(locationDate);
 
-  const cr = 44;
-  const lSz = cr * 2;
+  const hasSubCat = Boolean(subCategory);
+  const lineCount = hasSubCat ? 4 : 3;
+  const totalH = lineCount * 22 + 20;
+  const startY = cy - totalH / 2 + 14;
+
+  const catFs = diameterMm >= 50 ? 16 : 14;
+  const subFs = diameterMm >= 50 ? 13 : 11;
+  const posFs = diameterMm >= 50 ? 23 : 20;
+
+  let y = startY;
 
   return (
     <svg
@@ -108,17 +116,18 @@ export default function RetroLabel({
 
       {/* Position — centred */}
 
-      {logoSrc && (
-        <image
-          href={logoSrc}
-          x={cx - cr}
-          y={cy - cr}
-          width={lSz}
-          height={lSz}
-          preserveAspectRatio="xMidYMid meet"
-          clipPath={`url(#${uid}-c)`}
-        />
-      )}
+      <text
+        x={cx}
+        y={y + catFs + 6 + (hasSubCat ? subFs + 10 : 8)}
+        textAnchor="middle"
+        fontSize={posFs}
+        fontWeight="900"
+        fontFamily={FONT}
+        fill={TEXT_C1}
+        dominantBaseline="middle"
+      >
+        {position}
+      </text>
       {/* Date — bottom arc */}
       {hasDate && (
         <text
