@@ -63,13 +63,14 @@ export default function Dashboard() {
           <div className="template-list">
             {templates.map(t2 => {
               const n = t2.categories?.length || 0;
+              const participation = t2.participationCount > 0 ? 'participation' : 'no participation';
               return (
                 <div key={t2.id} className="template-card">
                   <div className="template-card-body">
                     <div className="template-name">{t2.name}</div>
                     <div className="template-desc">{t2.description}</div>
                     <div className="template-meta">
-                      {n} {catLabel(n)} · Ø{t2.podioDiameterMm}mm · {t2.podioMode}
+                      {n} {catLabel(n)} · {participation} · {t2.podiumPreset || t2.podioMode || 'class'}
                     </div>
                   </div>
                   <div className="template-card-actions">
