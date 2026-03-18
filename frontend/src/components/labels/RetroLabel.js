@@ -1,139 +1,134 @@
 import { useRef } from "react";
+import { CUT_COLOR } from "../../utils/labelUtils";
 
-const RING_COLOR = "#e0007a";
-const BG_COLOR = "transparent";
-const TEXT_C1 = "#cccccc"; // category (outer top arc) and date (bottom arc)
-const TEXT_C2 = "#888888"; // subCategory (inner top arc)
-const FONT = "Oswald, Futura, 'Arial Narrow', Arial, sans-serif";
+// 40mm diameter, viewBox 200×200 → 5 SVG units/mm
+// 1pt = 0.3528mm → 1pt = 1.764 SVG units
+const TITLE_FONT =
+  "'Futura Condensed Extra Bold', 'Arial Narrow', Arial, sans-serif";
+const BODY_FONT = "'Futura Medium', 'Arial Narrow', Arial, sans-serif";
 
-// Font sizes scaled to 200×200 viewBox
-const FONT_SIZES = {
-  25: { arc1: 7, arc2: 6, arc3: 6, pos: 24 },
-  40: { arc1: 9, arc2: 8, arc3: 8, pos: 32 },
-  50: { arc1: 11, arc2: 9, arc3: 9, pos: 38 },
-  70: { arc1: 13, arc2: 11, arc3: 11, pos: 46 },
-};
+const TITLE_SIZE = 14;  // 8pt  (8 × 1.764 = 14.1)
+const BODY_SIZE  = 23;  // 13pt (13 × 1.764 = 22.9)
+const PODIUM_SIZE = 23; // 13pt
+const DATE_SIZE  = 11;  // 6pt  (6 × 1.764 = 10.6)
+const LEADING    = 28;  // 16pt (16 × 1.764 = 28.2) — spec: 16pt between category lines and to podium
+
+function upper(value) {
+  return String(value || "").toUpperCase();
+}
 
 export default function RetroLabel({
-  category = "",
-  subCategory = "",
-  position = "",
+  raceTitleRow1 = "",
+  raceTitleRow2 = "",
+  categoryLines = [],
+  podiumText = "",
   locationDate = "",
-  diameterMm = 40,
-  logoSrc = "",
+  hideDate = false,
+  hideTitle = false,
 }) {
-  const idRef = useRef(`rl${Math.random().toString(36).slice(2, 8)}`);
+  const idRef = useRef(`cm-${Math.random().toString(36).slice(2, 8)}`);
   const uid = idRef.current;
+  const size = 40;
+  const vb = 200;
+  const cx = 100;
+  const cy = 100;
+  const radius = 94;
+  const outerTop = 104;
+  const innerTop = 84;
+  const bottomInner = 84;
+  const lines = categoryLines.filter(Boolean).slice(0, 3);
 
-  const S = 200;
-  const cx = 100,
-    cy = 100;
-  const r = 93;
+  // Center of the categories+podium block vertically.
+  // Shifts slightly up when date is visible to avoid overlap.
+  const medalTextY = hideDate ? 122 : 115;
 
-  const fs = FONT_SIZES[diameterMm] || FONT_SIZES[40];
-
-  // Arc radii — scaled from HTML reference (300px viewBox → 200px)
-  const tr1 = 85; // outer arc (category)
-  const tr2 = 67; // inner arc (subCategory)
-
-  // Top arcs: sweep=1 (clockwise) → travels OVER the top, text reads right-side up
-  const arc1Path = `M ${cx - tr1},${cy} A ${tr1},${tr1} 0 0,1 ${cx + tr1},${cy}`;
-  const arc2Path = `M ${cx - tr2},${cy} A ${tr2},${tr2} 0 0,1 ${cx + tr2},${cy}`;
-  // Bottom arc: sweep=0 (counterclockwise) + slight y offset so text sits at the bottom
-  const arc3Path = `M ${cx - tr1},${cy + 3} A ${tr1},${tr1} 0 0,0 ${cx + tr1},${cy + 3}`;
-
-  const hasSub = Boolean(subCategory);
-  const hasDate = Boolean(locationDate);
-
-  const cr = 44;
-  const lSz = cr * 2;
+  // Block midpoint = average of first category baseline and podium baseline.
+  // categoryFirst + lines.length × LEADING = podiumY
+  // (categoryFirst + podiumY) / 2 = medalTextY
+  // → categoryFirst = medalTextY - lines.length × LEADING / 2
+  const categoryFirst = medalTextY - (lines.length * LEADING) / 2;
+  const podiumY = categoryFirst + lines.length * LEADING;
 
   return (
     <svg
-      width={`${diameterMm}mm`}
-      height={`${diameterMm}mm`}
-      viewBox={`0 0 ${S} ${S}`}
+      width={`${size}mm`}
+      height={`${size}mm`}
+      viewBox={`0 0 ${vb} ${vb}`}
       xmlns="http://www.w3.org/2000/svg"
     >
       <defs>
-        <path id={`${uid}-a1`} d={arc1Path} />
-        <path id={`${uid}-a2`} d={arc2Path} />
-        <path id={`${uid}-a3`} d={arc3Path} />
+        <path
+          id={`${uid}-top-1`}
+          d={`M ${cx - outerTop},${cy} A ${outerTop},${outerTop} 0 0,1 ${cx + outerTop},${cy}`}
+        />
+        <path
+          id={`${uid}-top-2`}
+          d={`M ${cx - innerTop},${cy} A ${innerTop},${innerTop} 0 0,1 ${cx + innerTop},${cy}`}
+        />
+        <path
+          id={`${uid}-bottom`}
+          d={`M ${cx - bottomInner},${cy + 4} A ${bottomInner},${bottomInner} 0 0,0 ${cx + bottomInner},${cy + 4}`}
+        />
       </defs>
 
-      {/* Dark background */}
-      <circle cx={cx} cy={cy} r={r} fill={BG_COLOR} />
-      {/* Pink/magenta outer ring */}
-      <circle
-        cx={cx}
-        cy={cy}
-        r={r}
-        fill="none"
-        stroke={RING_COLOR}
-        strokeWidth="4"
-      />
+      <circle cx={cx} cy={cy} r={radius} fill="white" stroke={CUT_COLOR} strokeWidth="1" />
 
-      {/* Category — outer top arc */}
-      {category && (
+      {!hideTitle && raceTitleRow1 ? (
+        <text fontFamily={TITLE_FONT} fontSize={TITLE_SIZE} fontWeight="700" fill="#000" textAnchor="middle">
+          <textPath href={`#${uid}-top-1`} startOffset="50%">
+            {upper(raceTitleRow1)}
+          </textPath>
+        </text>
+      ) : null}
+
+      {!hideTitle && raceTitleRow2 ? (
+        <text fontFamily={TITLE_FONT} fontSize={TITLE_SIZE} fontWeight="700" fill="#000" textAnchor="middle">
+          <textPath href={`#${uid}-top-2`} startOffset="50%">
+            {upper(raceTitleRow2)}
+          </textPath>
+        </text>
+      ) : null}
+
+      {lines.map((line, index) => (
         <text
-          fontSize={fs.arc1}
-          fill={TEXT_C1}
-          fontFamily={FONT}
+          key={`${line}-${index}`}
+          x={cx}
+          y={categoryFirst + index * LEADING}
+          fontFamily={BODY_FONT}
+          fontSize={BODY_SIZE}
+          fill="#000"
+          textAnchor="middle"
+        >
+          {upper(line)}
+        </text>
+      ))}
+
+      <text
+        x={cx}
+        y={podiumY}
+        fontFamily={TITLE_FONT}
+        fontSize={PODIUM_SIZE}
+        fontWeight="700"
+        fill="#000"
+        textAnchor="middle"
+      >
+        {upper(podiumText)}
+      </text>
+
+      {!hideDate && locationDate ? (
+        <text
+          fontFamily={TITLE_FONT}
+          fontSize={DATE_SIZE}
           fontWeight="700"
+          fill="#000"
           textAnchor="middle"
-          letterSpacing="2"
-          dy="4"
+          {...(locationDate.length > 30 ? { textLength: "240", lengthAdjust: "spacingAndGlyphs" } : {})}
         >
-          <textPath href={`#${uid}-a1`} startOffset="50%" dy="12">
-            {category.toUpperCase()}
+          <textPath href={`#${uid}-bottom`} startOffset="50%">
+            {upper(locationDate)}
           </textPath>
         </text>
-      )}
-
-      {/* Sub-category (apparatus) — inner top arc */}
-      {hasSub && (
-        <text
-          fontSize={fs.arc2}
-          fill={TEXT_C2}
-          fontFamily={FONT}
-          fontWeight="400"
-          textAnchor="middle"
-          letterSpacing="4"
-        >
-          <textPath href={`#${uid}-a2`} startOffset="50%">
-            {subCategory.toUpperCase()}
-          </textPath>
-        </text>
-      )}
-
-      {/* Position — centred */}
-
-      {logoSrc && (
-        <image
-          href={logoSrc}
-          x={cx - cr}
-          y={cy - cr}
-          width={lSz}
-          height={lSz}
-          preserveAspectRatio="xMidYMid meet"
-          clipPath={`url(#${uid}-c)`}
-        />
-      )}
-      {/* Date — bottom arc */}
-      {hasDate && (
-        <text
-          fontSize={fs.arc3}
-          fill={TEXT_C1}
-          fontFamily={FONT}
-          fontWeight="600"
-          textAnchor="middle"
-          letterSpacing="2"
-        >
-          <textPath href={`#${uid}-a3`} startOffset="50%">
-            {locationDate}
-          </textPath>
-        </text>
-      )}
+      ) : null}
     </svg>
   );
 }
