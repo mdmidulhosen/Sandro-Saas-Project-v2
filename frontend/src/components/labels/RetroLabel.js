@@ -7,11 +7,11 @@ const TITLE_FONT =
   "'Futura Condensed Extra Bold', 'Arial Narrow', Arial, sans-serif";
 const BODY_FONT = "'Futura Medium', 'Arial Narrow', Arial, sans-serif";
 
-const TITLE_SIZE = 14;  // 8pt  (8 × 1.764 = 14.1)
-const BODY_SIZE  = 23;  // 13pt (13 × 1.764 = 22.9)
+const TITLE_SIZE = 14; // 8pt  (8 × 1.764 = 14.1)
+const BODY_SIZE = 23; // 13pt (13 × 1.764 = 22.9)
 const PODIUM_SIZE = 23; // 13pt
-const DATE_SIZE  = 11;  // 6pt  (6 × 1.764 = 10.6)
-const LEADING    = 28;  // 16pt (16 × 1.764 = 28.2) — spec: 16pt between category lines and to podium
+const DATE_SIZE = 11; // 6pt  (6 × 1.764 = 10.6)
+const LEADING = 28; // 16pt (16 × 1.764 = 28.2) — spec: 16pt between category lines and to podium
 
 function upper(value) {
   return String(value || "").toUpperCase();
@@ -38,10 +38,10 @@ export default function RetroLabel({
   const vb = 200;
   const cx = 100;
   const cy = 100;
-  const radius = 88;       // die-cut circle
-  const outerTop = 78;     // arc for race title row 1 (3.1 cm ø)
-  const innerTop = 65;     // arc for race title row 2 (2.6 cm ø)
-  const bottomInner = 78;  // arc for location/date text
+  const radius = 88; // die-cut circle
+  const outerTop = 78; // arc for race title row 1 (3.1 cm ø)
+  const innerTop = 65; // arc for race title row 2 (2.6 cm ø)
+  const bottomInner = 78; // arc for location/date text
   const lines = categoryLines.filter(Boolean).slice(0, 3);
 
   // Center of the categories+podium block vertically.
@@ -77,11 +77,25 @@ export default function RetroLabel({
         />
       </defs>
 
-      <circle cx={cx} cy={cy} r={radius} fill="white" stroke={CUT_COLOR} strokeWidth="1" />
+      <circle
+        cx={cx}
+        cy={cy}
+        r={radius}
+        fill="white"
+        stroke={CUT_COLOR}
+        strokeWidth="3"
+      />
 
       {/* Race title row 1 — outer arc (3.1 cm ø), 8 pt, dy pushes text inside circle */}
       {!hideTitle && raceTitleRow1 ? (
-        <text fontFamily={TITLE_FONT} fontSize={TITLE_SIZE} fontWeight="700" fill="#000" textAnchor="middle" dy="5">
+        <text
+          fontFamily={TITLE_FONT}
+          fontSize={TITLE_SIZE}
+          fontWeight="700"
+          fill="#000"
+          textAnchor="middle"
+          dy="7"
+        >
           <textPath href={`#${uid}-top-1`} startOffset="50%">
             {upper(raceTitleRow1)}
           </textPath>
@@ -90,7 +104,14 @@ export default function RetroLabel({
 
       {/* Race title row 2 — inner arc (2.6 cm ø), 8 pt */}
       {!hideTitle && raceTitleRow2 ? (
-        <text fontFamily={TITLE_FONT} fontSize={TITLE_SIZE} fontWeight="700" fill="#000" textAnchor="middle" dy="5">
+        <text
+          fontFamily={TITLE_FONT}
+          fontSize={TITLE_SIZE}
+          fontWeight="700"
+          fill="#000"
+          textAnchor="middle"
+          dy="5"
+        >
           <textPath href={`#${uid}-top-2`} startOffset="50%">
             {upper(raceTitleRow2)}
           </textPath>
@@ -133,7 +154,9 @@ export default function RetroLabel({
           fill="#000"
           textAnchor="middle"
           dy="-3"
-          {...(locationDate.length > 30 ? { textLength: "240", lengthAdjust: "spacingAndGlyphs" } : {})}
+          {...(locationDate.length > 30
+            ? { textLength: "240", lengthAdjust: "spacingAndGlyphs" }
+            : {})}
         >
           <textPath href={`#${uid}-bottom`} startOffset="50%">
             {locationDate}
