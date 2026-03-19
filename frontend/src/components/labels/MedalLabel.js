@@ -68,7 +68,7 @@ export default function MedalLabel({
         r={radius}
         fill="white"
         stroke={CUT_COLOR}
-        strokeWidth="1"
+        strokeWidth="3"
       />
 
       {/* Logo — centered, max size constrained to logo clip circle */}

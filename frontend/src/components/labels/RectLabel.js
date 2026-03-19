@@ -1,18 +1,20 @@
 import { CUT_COLOR } from "../../utils/labelUtils";
 
-// RectLabel SVG coordinate system: 1 unit = 1mm (viewBox matches mm dimensions)
-// Font sizes converted from pt: 1pt = 0.3528mm
+// RectLabel uses proportional scaling so every sticker size (5.5, 5.0, 4.5 cm)
+// looks visually identical. All spec values below are defined at the BASE_WIDTH
+// reference size; they scale linearly with the actual sticker width.
+const BASE_WIDTH = 55; // mm — reference width (rank-1 default: 5.5 cm)
+
+// Spec font sizes at BASE_WIDTH (1pt = 0.3528mm)
 const PT = 0.3528;
-const TITLE_SIZE  = +(8  * PT).toFixed(2); // 8pt  = 2.82mm
-const BODY_SIZE   = +(11 * PT).toFixed(2); // 11pt = 3.88mm
-const PODIUM_SIZE = +(13 * PT).toFixed(2); // 13pt = 4.59mm
-const DATE_SIZE   = +(6  * PT).toFixed(2); // 6pt  = 2.12mm
-// Baseline-to-baseline advance between elements: 13pt = 4.59mm (spec)
-const ELEMENT_ADVANCE = +(13 * PT).toFixed(2);
-// Logo size: ~50% of sticker height, constrained by preserveAspectRatio="xMidYMid meet"
-const LOGO_SIZE = 12; // mm
-// Margin from die-cut line for non-centered alignments
-const MARGIN = 4; // mm
+const TITLE_SIZE_BASE = +(8 * PT).toFixed(3); // 8pt  at 5.5 cm
+const BODY_SIZE_BASE = +(11 * PT).toFixed(3); // 11pt at 5.5 cm
+const PODIUM_SIZE_BASE = +(13 * PT).toFixed(3); // 13pt at 5.5 cm
+const DATE_SIZE_BASE = +(6 * PT).toFixed(3); // 6pt  at 5.5 cm
+const ADVANCE_BASE = +(13 * PT).toFixed(3); // 13pt baseline-to-baseline advance
+const LOGO_SIZE_BASE = 12; // mm logo box at 5.5 cm
+const MARGIN_BASE = 4; // mm left margin at 5.5 cm
+const RIGHT_MARGIN_BASE = 2; // mm right margin at 5.5 cm
 
 const TITLE_FONT =
   "'Futura Condensed Extra Bold', 'Arial Narrow', Arial, sans-serif";
@@ -28,9 +30,9 @@ function getAnchor(align) {
   return "middle";
 }
 
-function getX(align, width) {
-  if (align === "left") return MARGIN;
-  if (align === "right") return width - MARGIN;
+function getX(align, width, margin, rightMargin) {
+  if (align === "left") return margin;
+  if (align === "right") return width - rightMargin;
   return width / 2;
 }
 
@@ -41,7 +43,7 @@ export default function RectLabel({
   podiumText = "",
   locationDate = "",
   logoSrc = "",
-  align = "center",
+  align = "right",
   logoAlign = "left",
   widthCm = 5.5,
   heightCm = 2.3,
@@ -49,36 +51,87 @@ export default function RectLabel({
 }) {
   const width = widthCm * 10;
   const height = heightCm * 10;
+
+  // Scale all dimensions proportionally so every rank looks visually identical
+  const scale = width / BASE_WIDTH;
+  const TITLE_SIZE = +(TITLE_SIZE_BASE * scale).toFixed(2);
+  const BODY_SIZE = +(BODY_SIZE_BASE * scale).toFixed(2);
+  const PODIUM_SIZE = +(PODIUM_SIZE_BASE * scale).toFixed(2);
+  const DATE_SIZE = +(DATE_SIZE_BASE * scale).toFixed(2);
+  const ADVANCE = +(ADVANCE_BASE * scale).toFixed(2);
+  const LOGO_SIZE = +(LOGO_SIZE_BASE * scale).toFixed(2);
+  const MARGIN = +(MARGIN_BASE * scale).toFixed(2);
+  const RIGHT_MARGIN = +(RIGHT_MARGIN_BASE * scale).toFixed(2);
+
   const anchor = getAnchor(align);
-  const textX = getX(align, width);
+  const textX = getX(align, width, MARGIN, RIGHT_MARGIN);
   const logoX = logoAlign === "right" ? width - MARGIN - LOGO_SIZE : MARGIN;
   const contentLines = categoryLines.filter(Boolean).slice(0, 2);
 
-  // Build text block — each entry controls uppercase and italic independently
-  // title/podium: uppercase per spec; category/date: preserve user case
+  // Build text block — title/podium forced uppercase; category/date preserve case
   const textBlock = [];
   if (!titleHidden && raceTitleRow1)
-    textBlock.push({ text: upper(raceTitleRow1), font: TITLE_FONT, size: TITLE_SIZE, weight: 700 });
+    textBlock.push({
+      text: upper(raceTitleRow1),
+      font: TITLE_FONT,
+      size: TITLE_SIZE,
+      weight: 700,
+    });
   if (!titleHidden && raceTitleRow2)
-    textBlock.push({ text: upper(raceTitleRow2), font: TITLE_FONT, size: TITLE_SIZE, weight: 700 });
+    textBlock.push({
+      text: upper(raceTitleRow2),
+      font: TITLE_FONT,
+      size: TITLE_SIZE,
+      weight: 700,
+    });
   contentLines.forEach((line) => {
-    textBlock.push({ text: line, font: BODY_FONT, size: BODY_SIZE, weight: 400 });
+    textBlock.push({
+      text: line,
+      font: BODY_FONT,
+      size: BODY_SIZE,
+      weight: 400,
+    });
   });
   if (podiumText)
-    textBlock.push({ text: upper(podiumText), font: TITLE_FONT, size: PODIUM_SIZE, weight: 700 });
+    textBlock.push({
+      text: upper(podiumText),
+      font: TITLE_FONT,
+      size: PODIUM_SIZE,
+      weight: 700,
+    });
   if (locationDate)
-    textBlock.push({ text: locationDate, font: TITLE_FONT, size: DATE_SIZE, weight: 700, italic: true });
+    textBlock.push({
+      text: locationDate,
+      font: TITLE_FONT,
+      size: DATE_SIZE,
+      weight: 700,
+      italic: true,
+    });
 
   if (textBlock.length === 0) {
     return (
-      <svg width={`${width}mm`} height={`${height}mm`} viewBox={`0 0 ${width} ${height}`} xmlns="http://www.w3.org/2000/svg">
-        <rect x="0.5" y="0.5" width={width - 1} height={height - 1} rx="1" fill="white" stroke={CUT_COLOR} strokeWidth="1" />
+      <svg
+        width={`${width}mm`}
+        height={`${height}mm`}
+        viewBox={`0 0 ${width} ${height}`}
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <rect
+          x="0.5"
+          y="0.5"
+          width={width - 1}
+          height={height - 1}
+          rx="1"
+          fill="white"
+          stroke={CUT_COLOR}
+          strokeWidth="1"
+        />
       </svg>
     );
   }
 
-  // Total visual span: top of first char to baseline of last char
-  const totalHeight = textBlock[0].size + (textBlock.length - 1) * ELEMENT_ADVANCE;
+  // Total visual span and starting Y for vertical centering
+  const totalHeight = textBlock[0].size + (textBlock.length - 1) * ADVANCE;
   let y = (height - totalHeight) / 2 + textBlock[0].size;
 
   return (
@@ -88,10 +141,19 @@ export default function RectLabel({
       viewBox={`0 0 ${width} ${height}`}
       xmlns="http://www.w3.org/2000/svg"
     >
-      {/* Die-cut border: #e6007e, 1pt, center-aligned */}
-      <rect x="0.5" y="0.5" width={width - 1} height={height - 1} rx="1" fill="white" stroke={CUT_COLOR} strokeWidth="1" />
+      {/* Die-cut border: #e6007e, 1pt, center-aligned stroke */}
+      <rect
+        x="0.5"
+        y="0.5"
+        width={width - 1}
+        height={height - 1}
+        rx="1"
+        fill="white"
+        stroke={CUT_COLOR}
+        strokeWidth="0.5"
+      />
 
-      {/* Logo — bottom-left (or bottom-right), margin from die-cut, max size on longest side */}
+      {/* Logo — bottom-left (or bottom-right), margin from die-cut, max on longest side */}
       {logoSrc ? (
         <image
           href={logoSrc}
@@ -106,13 +168,13 @@ export default function RectLabel({
       {/* Text block — vertically centered, aligned per align prop */}
       {textBlock.map((line, index) => {
         const currentY = y;
-        y += ELEMENT_ADVANCE;
+        y += ADVANCE;
         return (
           <text
-            key={`${line.text}-${index}`}
-            x={textX}
+            key={`${index}-${line.text}`}
+            x={textX + 20}
             y={currentY}
-            textAnchor={anchor}
+            textAnchor={"end"}
             fontFamily={line.font}
             fontSize={line.size}
             fontWeight={line.weight}
