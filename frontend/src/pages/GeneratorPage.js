@@ -322,12 +322,20 @@ export default function GeneratorPage() {
             <input value={config.raceTitleRow1} onChange={(event) => updateConfig("raceTitleRow1", event.target.value)} />
           </div>
           <div className="field">
-            <label>Race title row 2 <span style={{ opacity: 0.6, fontSize: "0.8em" }}>(max 20 chars)</span></label>
+            <label>
+              Race title row 2{" "}
+              <span style={{ opacity: 0.6, fontSize: "0.8em" }}>(medals: max 20 chars · trophies: max 35 chars)</span>
+              {config.raceTitleRow2.length > 20 ? (
+                <span style={{ color: "#e6007e", marginLeft: 6, fontSize: "0.8em" }}>
+                  {config.raceTitleRow2.length} chars — exceeds medal limit (20)
+                </span>
+              ) : null}
+            </label>
             <input
               value={config.raceTitleRow2}
               onChange={(event) => updateConfig("raceTitleRow2", event.target.value)}
               placeholder="Optional when title is long"
-              maxLength={20}
+              maxLength={35}
             />
           </div>
           <div className="field">
@@ -503,13 +511,23 @@ export default function GeneratorPage() {
                       onChange={(event) => {
                         const val = event.target.value;
                         if (!val) {
-                          updateTrophySizeForRank(index, rank, defaultPreset.widthCm, defaultPreset.heightCm);
+                          setConfig((prev) => {
+                            const cats = [...prev.categories];
+                            const cat = { ...cats[index] };
+                            const widths = { ...(cat.trophyWidthCmByRank || {}) };
+                            const heights = { ...(cat.trophyHeightCmByRank || {}) };
+                            delete widths[rank];
+                            delete heights[rank];
+                            cats[index] = { ...cat, trophyWidthCmByRank: widths, trophyHeightCmByRank: heights };
+                            return { ...prev, categories: cats };
+                          });
                         } else {
                           const [w, h] = val.split("x").map(Number);
                           updateTrophySizeForRank(index, rank, w, h);
                         }
                       }}
                     >
+                      <option value="">Default ({defaultPreset.widthCm}×{defaultPreset.heightCm} cm)</option>
                       {TROPHY_SIZE_PRESETS.map((preset) => (
                         <option key={preset.rank} value={`${preset.widthCm}x${preset.heightCm}`}>
                           {preset.label}

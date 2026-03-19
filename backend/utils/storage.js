@@ -28,7 +28,7 @@ function defaultCategory(overrides = {}) {
     hideCategoryTitle: false,
     hideCategoryDate: false,
     hideTrophyTitle: false,
-    trophyAlignment: "center",
+    trophyAlignment: "right",
     trophyLogoAlignment: "left",
     trophyWidthCmByRank: {},
     trophyHeightCmByRank: {},
