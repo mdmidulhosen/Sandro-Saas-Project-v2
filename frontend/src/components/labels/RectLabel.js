@@ -24,12 +24,6 @@ function upper(value) {
   return String(value || "").toUpperCase();
 }
 
-function getAnchor(align) {
-  if (align === "left") return "start";
-  if (align === "right") return "end";
-  return "middle";
-}
-
 function getX(align, width, margin, rightMargin) {
   if (align === "left") return margin;
   if (align === "right") return width - rightMargin;
@@ -63,7 +57,6 @@ export default function RectLabel({
   const MARGIN = +(MARGIN_BASE * scale).toFixed(2);
   const RIGHT_MARGIN = +(RIGHT_MARGIN_BASE * scale).toFixed(2);
 
-  const anchor = getAnchor(align);
   const textX = getX(align, width, MARGIN, RIGHT_MARGIN);
   const logoX = logoAlign === "right" ? width - MARGIN - LOGO_SIZE : MARGIN;
   const contentLines = categoryLines.filter(Boolean).slice(0, 2);
