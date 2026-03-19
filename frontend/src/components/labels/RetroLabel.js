@@ -28,14 +28,20 @@ export default function RetroLabel({
 }) {
   const idRef = useRef(`cm-${Math.random().toString(36).slice(2, 8)}`);
   const uid = idRef.current;
+  // Coordinate system: SVG is 40mm × 40mm, viewBox 200×200 → 1 unit = 0.2 mm
+  // Sticker = 4.0 cm total (includes ~2.5 mm bleed each side)
+  // Die-cut diameter:  3.5 cm = 35 mm → radius = 17.5 mm = 88 SVG units
+  // Outer title arc:   3.1 cm ø → radius = 15.5 mm = 78 SVG units
+  // Inner title arc:   2.6 cm ø → radius = 13.0 mm = 65 SVG units
+  // Bottom date arc:   same as outer title → 78 SVG units
   const size = 40;
   const vb = 200;
   const cx = 100;
   const cy = 100;
-  const radius = 94;
-  const outerTop = 104;
-  const innerTop = 84;
-  const bottomInner = 84;
+  const radius = 88;       // die-cut circle
+  const outerTop = 78;     // arc for race title row 1 (3.1 cm ø)
+  const innerTop = 65;     // arc for race title row 2 (2.6 cm ø)
+  const bottomInner = 78;  // arc for location/date text
   const lines = categoryLines.filter(Boolean).slice(0, 3);
 
   // Center of the categories+podium block vertically.
@@ -73,16 +79,18 @@ export default function RetroLabel({
 
       <circle cx={cx} cy={cy} r={radius} fill="white" stroke={CUT_COLOR} strokeWidth="1" />
 
+      {/* Race title row 1 — outer arc (3.1 cm ø), 8 pt, dy pushes text inside circle */}
       {!hideTitle && raceTitleRow1 ? (
-        <text fontFamily={TITLE_FONT} fontSize={TITLE_SIZE} fontWeight="700" fill="#000" textAnchor="middle">
+        <text fontFamily={TITLE_FONT} fontSize={TITLE_SIZE} fontWeight="700" fill="#000" textAnchor="middle" dy="5">
           <textPath href={`#${uid}-top-1`} startOffset="50%">
             {upper(raceTitleRow1)}
           </textPath>
         </text>
       ) : null}
 
+      {/* Race title row 2 — inner arc (2.6 cm ø), 8 pt */}
       {!hideTitle && raceTitleRow2 ? (
-        <text fontFamily={TITLE_FONT} fontSize={TITLE_SIZE} fontWeight="700" fill="#000" textAnchor="middle">
+        <text fontFamily={TITLE_FONT} fontSize={TITLE_SIZE} fontWeight="700" fill="#000" textAnchor="middle" dy="5">
           <textPath href={`#${uid}-top-2`} startOffset="50%">
             {upper(raceTitleRow2)}
           </textPath>
@@ -115,17 +123,20 @@ export default function RetroLabel({
         {upper(podiumText)}
       </text>
 
+      {/* Location / date — inside bottom arc, 6 pt, italic to match reference */}
       {!hideDate && locationDate ? (
         <text
           fontFamily={TITLE_FONT}
           fontSize={DATE_SIZE}
           fontWeight="700"
+          fontStyle="italic"
           fill="#000"
           textAnchor="middle"
+          dy="-3"
           {...(locationDate.length > 30 ? { textLength: "240", lengthAdjust: "spacingAndGlyphs" } : {})}
         >
           <textPath href={`#${uid}-bottom`} startOffset="50%">
-            {upper(locationDate)}
+            {locationDate}
           </textPath>
         </text>
       ) : null}

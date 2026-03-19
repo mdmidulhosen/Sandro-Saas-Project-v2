@@ -115,21 +115,23 @@ export default function MedalLabel({
         </text>
       ) : null}
 
-      {/* Location / date — inside bottom arc, 6 pt */}
+      {/* Location / date — inside bottom arc, 6 pt, italic + mixed case to match reference */}
       {/* textLength compresses text when > 30 chars to avoid overflow */}
       {locationDate ? (
         <text
           fontFamily={FONT_FAMILY}
           fontSize="17"
           fontWeight="700"
+          fontStyle="italic"
           fill="#000"
           textAnchor="middle"
+          dy="-3"
           {...(locationDate.length > 30
             ? { textLength: "240", lengthAdjust: "spacingAndGlyphs" }
             : {})}
         >
           <textPath href={`#${uid}-bottom`} startOffset="50%">
-            {upper(locationDate)}
+            {locationDate}
           </textPath>
         </text>
       ) : null}
