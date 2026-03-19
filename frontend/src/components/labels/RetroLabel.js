@@ -85,7 +85,6 @@ export default function RetroLabel({
         stroke={CUT_COLOR}
         strokeWidth="3"
       />
-
       {/* Race title row 1 — outer arc (3.1 cm ø), 8 pt, dy pushes text inside circle */}
       {!hideTitle && raceTitleRow1 ? (
         <text
