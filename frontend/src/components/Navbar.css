@@ -92,3 +92,11 @@
   color: var(--accent);
   opacity: 1;
 }
+
+.navbar-version {
+  text-align: center;
+  padding: 8px 0 4px;
+  font-size: 11px;
+  opacity: 0.35;
+  color: var(--fg);
+}
