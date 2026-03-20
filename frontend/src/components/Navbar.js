@@ -1,4 +1,3 @@
-import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { useTranslation } from '../utils/i18n';
 import './Navbar.css';
@@ -42,6 +41,8 @@ export default function Navbar() {
           🇬🇧 EN
         </button>
       </div>
+
+      <div className="navbar-version">v1.0.0</div>
     </nav>
   );
 }
