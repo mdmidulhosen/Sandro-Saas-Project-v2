@@ -1,9 +1,8 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { templatesApi, excelApi } from "../utils/api";
 import {
   TROPHY_SIZE_PRESETS,
-  downloadSvgSheet,
   generateAllLabels,
   newCategory,
   normalizeTemplate,
@@ -22,16 +21,18 @@ const SHEET_SIZES = [
   { key: "custom", label: "Custom width", w: null },
 ];
 
+// "Reference" removed — use Row A / B / C only
 const BREAK_FIELDS = [
   { value: "rowA", label: "Row A" },
   { value: "rowB", label: "Row B" },
   { value: "rowC", label: "Row C" },
-  { value: "reference", label: "Reference" },
 ];
 
 const PODIUM_OPTIONS = [
   { value: "class", label: "1° CLASS. / 2° CLASS. / 3° CLASS." },
   { value: "numeric", label: "1° / 2° / 3°" },
+  { value: "classificata", label: "1°CLASSIFICATA / 2°CLASSIFICATA / 3°CLASSIFICATA" },
+  { value: "classificato", label: "1°CLASSIFICATO / 2°CLASSIFICATO / 3°CLASSIFICATO" },
 ];
 
 function buildDefaultConfig() {
@@ -43,6 +44,7 @@ function buildDefaultConfig() {
     categoryBreakField: "rowA",
     trophyBreakField: "rowA",
     breakGapMm: 20,
+    podiumPreset: "class",
     categories: [newCategory({ reference: "CATEGORY 1", rowA: "CATEGORY", rowB: "WOMEN" })],
   });
 }
@@ -61,8 +63,9 @@ export default function GeneratorPage() {
   const [excelHeaders, setExcelHeaders] = useState([]);
   const [excelRows, setExcelRows] = useState([]);
   const [excelLoading, setExcelLoading] = useState(false);
+  // Track which categories have their advanced section expanded
+  const [expandedCategories, setExpandedCategories] = useState({});
   const [colMap, setColMap] = useState({
-    reference: "",
     rowA: "",
     rowB: "",
     rowC: "",
@@ -106,6 +109,37 @@ export default function GeneratorPage() {
     });
   }
 
+  function updateApparatusItem(catIndex, appIndex, field, value) {
+    setConfig((prev) => {
+      const categories = [...prev.categories];
+      const cat = categories[catIndex];
+      const apparatus = [...(cat.apparatus || [])];
+      apparatus[appIndex] = { ...apparatus[appIndex], [field]: value };
+      categories[catIndex] = { ...cat, apparatus };
+      return { ...prev, categories };
+    });
+  }
+
+  function addApparatusItem(catIndex) {
+    setConfig((prev) => {
+      const categories = [...prev.categories];
+      const cat = categories[catIndex];
+      const apparatus = [...(cat.apparatus || []), { name: "", qty: 3, enabled: true }];
+      categories[catIndex] = { ...cat, apparatus };
+      return { ...prev, categories };
+    });
+  }
+
+  function removeApparatusItem(catIndex, appIndex) {
+    setConfig((prev) => {
+      const categories = [...prev.categories];
+      const cat = categories[catIndex];
+      const apparatus = (cat.apparatus || []).filter((_, i) => i !== appIndex);
+      categories[catIndex] = { ...cat, apparatus };
+      return { ...prev, categories };
+    });
+  }
+
   function updateTrophySizeForRank(categoryIndex, rank, widthCm, heightCm) {
     setConfig((prev) => {
       const categories = [...prev.categories];
@@ -142,6 +176,7 @@ export default function GeneratorPage() {
         newCategory({
           reference: `CATEGORY ${prev.categories.length + 1}`,
           rowA: "CATEGORY",
+          podiumPreset: prev.podiumPreset, // inherit global preset from template
         }),
       ],
     }));
@@ -154,12 +189,17 @@ export default function GeneratorPage() {
     }));
   }
 
+  function toggleCategoryExpanded(categoryId) {
+    setExpandedCategories((prev) => ({ ...prev, [categoryId]: !prev[categoryId] }));
+  }
+
   function applyTemplate(templateId) {
     setSelectedTemplateId(templateId);
     const template = templates.find((item) => item.id === templateId);
     if (!template) return;
     setConfig(normalizeTemplate(template));
     setLabels([]);
+    setExpandedCategories({});
   }
 
   function handleImageUpload(field, event) {
@@ -183,12 +223,6 @@ export default function GeneratorPage() {
     }, 100);
   }
 
-  function handleDownloadSvg() {
-    if (!previewRef.current) return;
-    downloadSvgSheet(previewRef.current, "stickers.svg", getSheetWidth(), labelSpacingMm, {
-      breakGapMm: config.breakGapMm,
-    });
-  }
 
   function handlePrintPdf() {
     if (!previewRef.current) return;
@@ -225,7 +259,7 @@ export default function GeneratorPage() {
     const categories = excelRows
       .map((row, rowIndex) =>
         newCategory({
-          reference: String(getValue(row, "reference") || `ROW ${rowIndex + 1}`).trim(),
+          reference: String(getValue(row, "rowA") || `ROW ${rowIndex + 1}`).trim(),
           rowA: String(getValue(row, "rowA") || "").trim(),
           rowB: String(getValue(row, "rowB") || "").trim(),
           rowC: String(getValue(row, "rowC") || "").trim(),
@@ -233,9 +267,10 @@ export default function GeneratorPage() {
           coppe: parseInt(getValue(row, "coppe"), 10) || 0,
           copiesPerRank: parseInt(getValue(row, "copiesPerRank"), 10) || 1,
           podiumText: String(getValue(row, "podiumText") || "").trim(),
+          podiumPreset: config.podiumPreset,
         }),
       )
-      .filter((category) => category.reference || category.rowA || category.rowB || category.rowC);
+      .filter((category) => category.rowA || category.rowB || category.rowC);
 
     if (categories.length > 0) {
       updateConfig("categories", categories);
@@ -291,10 +326,11 @@ export default function GeneratorPage() {
       <div className="page-header">
         <div>
           <h1>{t("gen_title")}</h1>
-          <p className="subtitle">Updated to the client PDF spec: participation medals, category medals, trophies, Illustrator-ready SVG export.</p>
+          <p className="subtitle">Participation medals, category medals, trophies — Illustrator-ready PDF export.</p>
         </div>
       </div>
 
+      {/* Template selector */}
       <div className="config-section">
         <div className="section-label">Template</div>
         <select className="template-select" value={selectedTemplateId} onChange={(event) => applyTemplate(event.target.value)}>
@@ -307,6 +343,7 @@ export default function GeneratorPage() {
         </select>
       </div>
 
+      {/* Global Race Data */}
       <div className="config-section">
         <div className="section-label">Global Race Data</div>
         <div className="form-grid">
@@ -324,12 +361,7 @@ export default function GeneratorPage() {
           <div className="field">
             <label>
               Race title row 2{" "}
-              <span style={{ opacity: 0.6, fontSize: "0.8em" }}>(medals: max 20 chars · trophies: max 35 chars)</span>
-              {config.raceTitleRow2.length > 20 ? (
-                <span style={{ color: "#e6007e", marginLeft: 6, fontSize: "0.8em" }}>
-                  {config.raceTitleRow2.length} chars — exceeds medal limit (20)
-                </span>
-              ) : null}
+              <span style={{ opacity: 0.6, fontSize: "0.8em" }}>(optional overflow)</span>
             </label>
             <input
               value={config.raceTitleRow2}
@@ -343,7 +375,10 @@ export default function GeneratorPage() {
             <input value={config.locationDate} onChange={(event) => updateConfig("locationDate", event.target.value)} />
           </div>
           <div className="field">
-            <label>Podium preset</label>
+            <label>
+              Podium preset{" "}
+              <span style={{ opacity: 0.6, fontSize: "0.8em" }}>(default for all categories)</span>
+            </label>
             <select value={config.podiumPreset} onChange={(event) => updateConfig("podiumPreset", event.target.value)}>
               {PODIUM_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -365,7 +400,10 @@ export default function GeneratorPage() {
             <input type="number" min="0" value={config.participationCount} onChange={(event) => updateConfig("participationCount", parseInt(event.target.value, 10) || 0)} />
           </div>
           <div className="field">
-            <label>Category medal break row</label>
+            <label>
+              Category medal group break{" "}
+              <span style={{ opacity: 0.6, fontSize: "0.8em" }}>(add row gap between categories)</span>
+            </label>
             <select value={config.categoryBreakField} onChange={(event) => updateConfig("categoryBreakField", event.target.value)}>
               {BREAK_FIELDS.map((item) => (
                 <option key={item.value} value={item.value}>
@@ -375,7 +413,10 @@ export default function GeneratorPage() {
             </select>
           </div>
           <div className="field">
-            <label>Trophy break row</label>
+            <label>
+              Trophy group break{" "}
+              <span style={{ opacity: 0.6, fontSize: "0.8em" }}>(add row gap between categories)</span>
+            </label>
             <select value={config.trophyBreakField} onChange={(event) => updateConfig("trophyBreakField", event.target.value)}>
               {BREAK_FIELDS.map((item) => (
                 <option key={item.value} value={item.value}>
@@ -385,12 +426,16 @@ export default function GeneratorPage() {
             </select>
           </div>
           <div className="field">
-            <label>Extra break gap (mm)</label>
+            <label>
+              Group break gap (mm){" "}
+              <span style={{ opacity: 0.6, fontSize: "0.8em" }}>(extra vertical space between groups)</span>
+            </label>
             <input type="number" min="0" max="100" value={config.breakGapMm} onChange={(event) => updateConfig("breakGapMm", parseInt(event.target.value, 10) || 0)} />
           </div>
         </div>
       </div>
 
+      {/* Categories / Layout Blocks */}
       <div className="config-section">
         <div className="section-label-row">
           <div className="section-label">Categories / Layout Blocks</div>
@@ -402,11 +447,9 @@ export default function GeneratorPage() {
 
         {config.categories.map((category, index) => (
           <div key={category.id} className="cat-row">
+
+            {/* ── Always-visible top row ─────────────────────────────────── */}
             <div className="cat-row-top">
-              <div className="field flex2">
-                <label>Reference</label>
-                <input value={category.reference} onChange={(event) => updateCategory(index, "reference", event.target.value)} />
-              </div>
               <div className="field">
                 <label>Category medals</label>
                 <input type="number" min="0" value={category.medals} onChange={(event) => updateCategory(index, "medals", parseInt(event.target.value, 10) || 0)} />
@@ -424,6 +467,7 @@ export default function GeneratorPage() {
               </button>
             </div>
 
+            {/* ── Always-visible label text rows ────────────────────────── */}
             <div className="form-grid">
               <div className="field">
                 <label>Row A</label>
@@ -451,93 +495,174 @@ export default function GeneratorPage() {
                 <label>Single podium text</label>
                 <input value={category.podiumText} onChange={(event) => updateCategory(index, "podiumText", event.target.value)} placeholder="Optional override for all ranks" />
               </div>
-              <div className="field field-checkbox">
-                <label>Hide category medal</label>
-                <input type="checkbox" checked={category.hideCategoryMedal} onChange={(event) => updateCategory(index, "hideCategoryMedal", event.target.checked)} />
-              </div>
-              <div className="field field-checkbox">
-                <label>Hide medal title</label>
-                <input type="checkbox" checked={category.hideCategoryTitle} onChange={(event) => updateCategory(index, "hideCategoryTitle", event.target.checked)} />
-              </div>
-              <div className="field field-checkbox">
-                <label>Hide medal date</label>
-                <input type="checkbox" checked={category.hideCategoryDate} onChange={(event) => updateCategory(index, "hideCategoryDate", event.target.checked)} />
-              </div>
-              <div className="field field-checkbox">
-                <label>Hide trophy title</label>
-                <input type="checkbox" checked={category.hideTrophyTitle} onChange={(event) => updateCategory(index, "hideTrophyTitle", event.target.checked)} />
-              </div>
               <div className="field">
-                <label>Trophy text align</label>
-                <select value={category.trophyAlignment} onChange={(event) => updateCategory(index, "trophyAlignment", event.target.value)}>
-                  <option value="left">Left</option>
-                  <option value="center">Center</option>
-                  <option value="right">Right</option>
-                </select>
-              </div>
-              <div className="field">
-                <label>Trophy logo align</label>
-                <select value={category.trophyLogoAlignment} onChange={(event) => updateCategory(index, "trophyLogoAlignment", event.target.value)}>
-                  <option value="left">Left</option>
-                  <option value="right">Right</option>
-                </select>
+                <label>Ø Medaglie (mm)</label>
+                <input
+                  type="number"
+                  min="20"
+                  max="100"
+                  value={category.medalDiameterMm}
+                  onChange={(event) => updateCategory(index, "medalDiameterMm", parseInt(event.target.value, 10) || 40)}
+                />
               </div>
             </div>
 
-            <div className="form-grid">
-              {[1, 2, 3].map((rank) => (
-                <div className="field" key={rank}>
-                  <label>Rank {rank} text override</label>
-                  <input
-                    value={category.podiumTextByRank?.[rank] || ""}
-                    onChange={(event) => updatePodiumOverride(index, rank, event.target.value)}
-                    placeholder={`Default ${rank}° text`}
-                  />
-                </div>
-              ))}
+            {/* ── Attrezzi (apparatus) section ──────────────────────────── */}
+            <div className="form-grid" style={{ alignItems: "center", marginTop: 4 }}>
+              <div className="field field-checkbox">
+                <label>Attrezzi (apparatus medals)</label>
+                <input
+                  type="checkbox"
+                  checked={category.hasApparatus}
+                  onChange={(event) => updateCategory(index, "hasApparatus", event.target.checked)}
+                />
+              </div>
             </div>
 
-            <div className="form-grid" style={{ marginTop: 8 }}>
-              {[1, 2, 3].map((rank) => {
-                const defaultPreset = TROPHY_SIZE_PRESETS.find((p) => p.rank === rank) || TROPHY_SIZE_PRESETS[TROPHY_SIZE_PRESETS.length - 1];
-                const currentW = category.trophyWidthCmByRank?.[rank];
-                const currentH = category.trophyHeightCmByRank?.[rank];
-                const currentVal = currentW && currentH ? `${currentW}x${currentH}` : "";
-                return (
-                  <div className="field" key={rank}>
-                    <label>Rank {rank}° trophy size</label>
-                    <select
-                      value={currentVal}
-                      onChange={(event) => {
-                        const val = event.target.value;
-                        if (!val) {
-                          setConfig((prev) => {
-                            const cats = [...prev.categories];
-                            const cat = { ...cats[index] };
-                            const widths = { ...(cat.trophyWidthCmByRank || {}) };
-                            const heights = { ...(cat.trophyHeightCmByRank || {}) };
-                            delete widths[rank];
-                            delete heights[rank];
-                            cats[index] = { ...cat, trophyWidthCmByRank: widths, trophyHeightCmByRank: heights };
-                            return { ...prev, categories: cats };
-                          });
-                        } else {
-                          const [w, h] = val.split("x").map(Number);
-                          updateTrophySizeForRank(index, rank, w, h);
-                        }
-                      }}
-                    >
-                      <option value="">Default ({defaultPreset.widthCm}×{defaultPreset.heightCm} cm)</option>
-                      {TROPHY_SIZE_PRESETS.map((preset) => (
-                        <option key={preset.rank} value={`${preset.widthCm}x${preset.heightCm}`}>
-                          {preset.label}
-                        </option>
-                      ))}
+            {category.hasApparatus && (
+              <div style={{ marginTop: 6, marginBottom: 6, paddingLeft: 8, borderLeft: "2px solid #e6007e" }}>
+                {(category.apparatus || []).map((app, appIndex) => (
+                  <div key={appIndex} className="cat-row-top" style={{ marginBottom: 4 }}>
+                    <div className="field flex2">
+                      <label>Apparatus name</label>
+                      <input
+                        value={app.name}
+                        onChange={(event) => updateApparatusItem(index, appIndex, "name", event.target.value)}
+                        placeholder="e.g. CORPO LIBERO"
+                      />
+                    </div>
+                    <div className="field">
+                      <label>Medals (qty)</label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={app.qty}
+                        onChange={(event) => updateApparatusItem(index, appIndex, "qty", parseInt(event.target.value, 10) || 0)}
+                      />
+                    </div>
+                    <div className="field field-checkbox">
+                      <label>Enabled</label>
+                      <input
+                        type="checkbox"
+                        checked={app.enabled}
+                        onChange={(event) => updateApparatusItem(index, appIndex, "enabled", event.target.checked)}
+                      />
+                    </div>
+                    <button className="btn btn-sm btn-danger" onClick={() => removeApparatusItem(index, appIndex)}>
+                      ✕
+                    </button>
+                  </div>
+                ))}
+                <button className="btn btn-sm btn-outline" onClick={() => addApparatusItem(index)} style={{ marginTop: 4 }}>
+                  + Add apparatus
+                </button>
+              </div>
+            )}
+
+            {/* ── Expand/collapse toggle for advanced options ────────────── */}
+            <div style={{ marginTop: 8 }}>
+              <button
+                className="btn btn-sm btn-outline"
+                onClick={() => toggleCategoryExpanded(category.id)}
+                style={{ fontSize: "0.8em" }}
+              >
+                {expandedCategories[category.id] ? "▲ Hide advanced options" : "▼ Show advanced options"}
+              </button>
+            </div>
+
+            {/* ── Collapsible advanced section ──────────────────────────── */}
+            {expandedCategories[category.id] && (
+              <div style={{ marginTop: 8 }}>
+                <div className="form-grid">
+                  <div className="field field-checkbox">
+                    <label>Hide category medal</label>
+                    <input type="checkbox" checked={category.hideCategoryMedal} onChange={(event) => updateCategory(index, "hideCategoryMedal", event.target.checked)} />
+                  </div>
+                  <div className="field field-checkbox">
+                    <label>Hide medal title</label>
+                    <input type="checkbox" checked={category.hideCategoryTitle} onChange={(event) => updateCategory(index, "hideCategoryTitle", event.target.checked)} />
+                  </div>
+                  <div className="field field-checkbox">
+                    <label>Hide medal date</label>
+                    <input type="checkbox" checked={category.hideCategoryDate} onChange={(event) => updateCategory(index, "hideCategoryDate", event.target.checked)} />
+                  </div>
+                  <div className="field field-checkbox">
+                    <label>Hide trophy title</label>
+                    <input type="checkbox" checked={category.hideTrophyTitle} onChange={(event) => updateCategory(index, "hideTrophyTitle", event.target.checked)} />
+                  </div>
+                  <div className="field">
+                    <label>Trophy text align</label>
+                    <select value={category.trophyAlignment} onChange={(event) => updateCategory(index, "trophyAlignment", event.target.value)}>
+                      <option value="left">Left</option>
+                      <option value="center">Center</option>
+                      <option value="right">Right</option>
                     </select>
                   </div>
-                );
-              })}
-            </div>
+                  <div className="field">
+                    <label>Trophy logo align</label>
+                    <select value={category.trophyLogoAlignment} onChange={(event) => updateCategory(index, "trophyLogoAlignment", event.target.value)}>
+                      <option value="left">Left</option>
+                      <option value="right">Right</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="form-grid">
+                  {[1, 2, 3].map((rank) => (
+                    <div className="field" key={rank}>
+                      <label>Rank {rank} text override</label>
+                      <input
+                        value={category.podiumTextByRank?.[rank] || ""}
+                        onChange={(event) => updatePodiumOverride(index, rank, event.target.value)}
+                        placeholder={`Default ${rank}° text`}
+                      />
+                    </div>
+                  ))}
+                </div>
+
+                <div className="form-grid" style={{ marginTop: 8 }}>
+                  {[1, 2, 3].map((rank) => {
+                    const defaultPreset = TROPHY_SIZE_PRESETS.find((p) => p.rank === rank) || TROPHY_SIZE_PRESETS[TROPHY_SIZE_PRESETS.length - 1];
+                    const currentW = category.trophyWidthCmByRank?.[rank];
+                    const currentH = category.trophyHeightCmByRank?.[rank];
+                    const currentVal = currentW && currentH ? `${currentW}x${currentH}` : "";
+                    return (
+                      <div className="field" key={rank}>
+                        <label>Rank {rank}° trophy size</label>
+                        <select
+                          value={currentVal}
+                          onChange={(event) => {
+                            const val = event.target.value;
+                            if (!val) {
+                              setConfig((prev) => {
+                                const cats = [...prev.categories];
+                                const cat = { ...cats[index] };
+                                const widths = { ...(cat.trophyWidthCmByRank || {}) };
+                                const heights = { ...(cat.trophyHeightCmByRank || {}) };
+                                delete widths[rank];
+                                delete heights[rank];
+                                cats[index] = { ...cat, trophyWidthCmByRank: widths, trophyHeightCmByRank: heights };
+                                return { ...prev, categories: cats };
+                              });
+                            } else {
+                              const [w, h] = val.split("x").map(Number);
+                              updateTrophySizeForRank(index, rank, w, h);
+                            }
+                          }}
+                        >
+                          <option value="">Default ({defaultPreset.widthCm}×{defaultPreset.heightCm} cm)</option>
+                          {TROPHY_SIZE_PRESETS.map((preset) => (
+                            <option key={preset.rank} value={`${preset.widthCm}x${preset.heightCm}`}>
+                              {preset.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         ))}
 
@@ -546,6 +671,7 @@ export default function GeneratorPage() {
         </button>
       </div>
 
+      {/* Stats */}
       <div className="stats-grid" style={{ marginBottom: 16 }}>
         <div className="stat-card">
           <div className="stat-number">{previewStats.participation}</div>
@@ -561,6 +687,7 @@ export default function GeneratorPage() {
         </div>
       </div>
 
+      {/* Generate buttons */}
       <div className="gen-buttons">
         <button className="btn btn-gen" onClick={() => generate("participation")}>
           Generate participation
@@ -576,11 +703,12 @@ export default function GeneratorPage() {
         </button>
       </div>
 
+      {/* Preview area */}
       {labels.length > 0 ? (
         <div id="preview-area" className="preview-section">
           <div className="preview-header">
             <h2>
-              Preview - {labels.length} sticker{labels.length === 1 ? "" : "s"}
+              Preview — {labels.length} sticker{labels.length === 1 ? "" : "s"}
             </h2>
             <div className="preview-actions">
               <div className="sheet-size-row">
@@ -598,9 +726,6 @@ export default function GeneratorPage() {
                 <span className="sheet-size-label">Gap:</span>
                 <input className="sheet-size-input" type="number" min="0" value={labelSpacingMm} onChange={(event) => setLabelSpacingMm(parseInt(event.target.value, 10) || 0)} />
               </div>
-              <button className="btn btn-accent" onClick={handleDownloadSvg}>
-                Download SVG
-              </button>
               <button className="btn btn-outline" onClick={handlePrintPdf}>
                 Export PDF
               </button>
@@ -624,6 +749,7 @@ export default function GeneratorPage() {
         </div>
       ) : null}
 
+      {/* Excel import modal */}
       {showExcelModal ? (
         <div className="modal-overlay" onClick={() => setShowExcelModal(false)}>
           <div className="modal modal-lg" onClick={(event) => event.stopPropagation()}>
@@ -636,7 +762,6 @@ export default function GeneratorPage() {
             <div className="modal-body">
               <div className="form-grid">
                 {[
-                  ["reference", "Reference"],
                   ["rowA", "Row A"],
                   ["rowB", "Row B"],
                   ["rowC", "Row C"],
