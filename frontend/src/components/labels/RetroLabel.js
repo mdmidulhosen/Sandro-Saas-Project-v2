@@ -8,10 +8,10 @@ const TITLE_FONT =
 const BODY_FONT = "'Futura Medium', 'Arial Narrow', Arial, sans-serif";
 
 const TITLE_SIZE = 14; // 8pt  (8 × 1.764 = 14.1)
-const BODY_SIZE = 23; // 13pt (13 × 1.764 = 22.9)
-const PODIUM_SIZE = 23; // 13pt
-const DATE_SIZE = 11; // 6pt  (6 × 1.764 = 10.6)
-const LEADING = 28; // 16pt (16 × 1.764 = 28.2) — spec: 16pt between category lines and to podium
+const BODY_SIZE = 19;  // 11pt (11 × 1.764 = 19.4) — reduced from 23 per client spec
+const PODIUM_SIZE = 21; // 12pt (12 × 1.764 = 21.2) — reduced from 23 per client spec
+const DATE_SIZE = 11;  // 6pt  (6 × 1.764 = 10.6)
+const LEADING = 24;   // 13.5pt baseline-to-baseline — reduced from 28, ensures 3 lines fit
 
 function upper(value) {
   return String(value || "").toUpperCase();
@@ -31,9 +31,9 @@ export default function RetroLabel({
   // Coordinate system: SVG is 40mm × 40mm, viewBox 200×200 → 1 unit = 0.2 mm
   // Sticker = 4.0 cm total (includes ~2.5 mm bleed each side)
   // Die-cut diameter:  3.5 cm = 35 mm → radius = 17.5 mm = 88 SVG units
-  // Outer title arc:   3.1 cm ø → radius = 15.5 mm = 78 SVG units
+  // Outer title arc:   3.1 cm ø → radius = 15.5 mm = 78 SVG units (clockwise = over top)
   // Inner title arc:   2.6 cm ø → radius = 13.0 mm = 65 SVG units
-  // Bottom date arc:   same as outer title → 78 SVG units
+  // Bottom date arc:   same as outer → 78 SVG units (counter-clockwise = under bottom)
   const size = 40;
   const vb = 200;
   const cx = 100;
@@ -44,14 +44,13 @@ export default function RetroLabel({
   const bottomInner = 78; // arc for location/date text
   const lines = categoryLines.filter(Boolean).slice(0, 3);
 
-  // Center of the categories+podium block vertically.
-  // Shifts slightly up when date is visible to avoid overlap.
+  // Center category+podium block vertically between title arcs and date arc.
+  // Shifts slightly up when date is visible to leave room for date text.
   const medalTextY = hideDate ? 122 : 115;
 
-  // Block midpoint = average of first category baseline and podium baseline.
+  // Block midpoint: average of first category baseline and podium baseline.
   // categoryFirst + lines.length × LEADING = podiumY
   // (categoryFirst + podiumY) / 2 = medalTextY
-  // → categoryFirst = medalTextY - lines.length × LEADING / 2
   const categoryFirst = medalTextY - (lines.length * LEADING) / 2;
   const podiumY = categoryFirst + lines.length * LEADING;
 
@@ -85,7 +84,8 @@ export default function RetroLabel({
         stroke={CUT_COLOR}
         strokeWidth="3"
       />
-      {/* Race title row 1 — outer arc (3.1 cm ø), 8 pt, dy pushes text inside circle */}
+
+      {/* Race title row 1 — outer top arc (3.1 cm ø), 8 pt */}
       {!hideTitle && raceTitleRow1 ? (
         <text
           fontFamily={TITLE_FONT}
@@ -94,6 +94,9 @@ export default function RetroLabel({
           fill="#000"
           textAnchor="middle"
           dy="7"
+          {...(raceTitleRow1.length > 28
+            ? { textLength: "300", lengthAdjust: "spacingAndGlyphs" }
+            : {})}
         >
           <textPath href={`#${uid}-top-1`} startOffset="50%">
             {upper(raceTitleRow1)}
@@ -101,7 +104,8 @@ export default function RetroLabel({
         </text>
       ) : null}
 
-      {/* Race title row 2 — inner arc (2.6 cm ø), 8 pt */}
+      {/* Race title row 2 — inner top arc (2.6 cm ø), 8 pt.
+          dy=12 ensures clear separation from row 1 (no overlap). */}
       {!hideTitle && raceTitleRow2 ? (
         <text
           fontFamily={TITLE_FONT}
@@ -109,7 +113,10 @@ export default function RetroLabel({
           fontWeight="700"
           fill="#000"
           textAnchor="middle"
-          dy="5"
+          dy="12"
+          {...(raceTitleRow2.length > 22
+            ? { textLength: "250", lengthAdjust: "spacingAndGlyphs" }
+            : {})}
         >
           <textPath href={`#${uid}-top-2`} startOffset="50%">
             {upper(raceTitleRow2)}
@@ -143,7 +150,7 @@ export default function RetroLabel({
         {upper(podiumText)}
       </text>
 
-      {/* Location / date — inside bottom arc, 6 pt, italic to match reference */}
+      {/* Location / date — inside bottom arc, 6 pt, italic */}
       {!hideDate && locationDate ? (
         <text
           fontFamily={TITLE_FONT}

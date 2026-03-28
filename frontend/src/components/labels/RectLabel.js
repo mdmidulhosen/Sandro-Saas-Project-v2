@@ -7,14 +7,16 @@ const BASE_WIDTH = 55; // mm — reference width (rank-1 default: 5.5 cm)
 
 // Spec font sizes at BASE_WIDTH (1pt = 0.3528mm)
 const PT = 0.3528;
-const TITLE_SIZE_BASE = +(8 * PT).toFixed(3); // 8pt  at 5.5 cm
-const BODY_SIZE_BASE = +(11 * PT).toFixed(3); // 11pt at 5.5 cm
+const TITLE_SIZE_BASE = +(8 * PT).toFixed(3);   // 8pt  at 5.5 cm
+const BODY_SIZE_BASE = +(11 * PT).toFixed(3);   // 11pt at 5.5 cm
 const PODIUM_SIZE_BASE = +(13 * PT).toFixed(3); // 13pt at 5.5 cm
-const DATE_SIZE_BASE = +(6 * PT).toFixed(3); // 6pt  at 5.5 cm
-const ADVANCE_BASE = +(13 * PT).toFixed(3); // 13pt baseline-to-baseline advance
-const LOGO_SIZE_BASE = 12; // mm logo box at 5.5 cm
-const MARGIN_BASE = 4; // mm left margin at 5.5 cm
+const DATE_SIZE_BASE = +(6 * PT).toFixed(3);    // 6pt  at 5.5 cm
+const ADVANCE_BASE = +(13 * PT).toFixed(3);     // 13pt baseline-to-baseline advance
+const TITLE_ADVANCE_BASE = +(10 * PT).toFixed(3); // tighter spacing between title rows
+const LOGO_SIZE_BASE = 12;   // mm logo box at 5.5 cm
+const MARGIN_BASE = 4;       // mm left/right margin at 5.5 cm
 const RIGHT_MARGIN_BASE = 2; // mm right margin at 5.5 cm
+const LOGO_DOWN_OFFSET = 2.5; // mm — move logo down per client spec
 
 const TITLE_FONT =
   "'Futura Condensed Extra Bold', 'Arial Narrow', Arial, sans-serif";
@@ -37,7 +39,7 @@ export default function RectLabel({
   podiumText = "",
   locationDate = "",
   logoSrc = "",
-  align = "right",
+  align = "center",
   logoAlign = "left",
   widthCm = 5.5,
   heightCm = 2.3,
@@ -53,15 +55,18 @@ export default function RectLabel({
   const PODIUM_SIZE = +(PODIUM_SIZE_BASE * scale).toFixed(2);
   const DATE_SIZE = +(DATE_SIZE_BASE * scale).toFixed(2);
   const ADVANCE = +(ADVANCE_BASE * scale).toFixed(2);
+  const TITLE_ADVANCE = +(TITLE_ADVANCE_BASE * scale).toFixed(2);
   const LOGO_SIZE = +(LOGO_SIZE_BASE * scale).toFixed(2);
   const MARGIN = +(MARGIN_BASE * scale).toFixed(2);
   const RIGHT_MARGIN = +(RIGHT_MARGIN_BASE * scale).toFixed(2);
 
+  const textAnchor = align === "left" ? "start" : align === "right" ? "end" : "middle";
   const textX = getX(align, width, MARGIN, RIGHT_MARGIN);
   const logoX = logoAlign === "right" ? width - MARGIN - LOGO_SIZE : MARGIN;
+  const logoY = height - MARGIN - LOGO_SIZE + LOGO_DOWN_OFFSET;
   const contentLines = categoryLines.filter(Boolean).slice(0, 2);
 
-  // Build text block — title/podium forced uppercase; category/date preserve case
+  // Build text block — mark title lines for tighter inter-title spacing
   const textBlock = [];
   if (!titleHidden && raceTitleRow1)
     textBlock.push({
@@ -69,6 +74,7 @@ export default function RectLabel({
       font: TITLE_FONT,
       size: TITLE_SIZE,
       weight: 700,
+      isTitle: true,
     });
   if (!titleHidden && raceTitleRow2)
     textBlock.push({
@@ -76,6 +82,7 @@ export default function RectLabel({
       font: TITLE_FONT,
       size: TITLE_SIZE,
       weight: 700,
+      isTitle: true,
     });
   contentLines.forEach((line) => {
     textBlock.push({
@@ -83,6 +90,7 @@ export default function RectLabel({
       font: BODY_FONT,
       size: BODY_SIZE,
       weight: 400,
+      isTitle: false,
     });
   });
   if (podiumText)
@@ -91,6 +99,7 @@ export default function RectLabel({
       font: TITLE_FONT,
       size: PODIUM_SIZE,
       weight: 700,
+      isTitle: false,
     });
   if (locationDate)
     textBlock.push({
@@ -99,6 +108,7 @@ export default function RectLabel({
       size: DATE_SIZE,
       weight: 700,
       italic: true,
+      isTitle: false,
     });
 
   if (textBlock.length === 0) {
@@ -114,7 +124,7 @@ export default function RectLabel({
           y="0.5"
           width={width - 1}
           height={height - 1}
-          rx="1"
+          rx="0"
           fill="white"
           stroke={CUT_COLOR}
           strokeWidth="1"
@@ -123,9 +133,19 @@ export default function RectLabel({
     );
   }
 
-  // Total visual span and starting Y for vertical centering
-  const totalHeight = textBlock[0].size + (textBlock.length - 1) * ADVANCE;
-  let y = (height - totalHeight) / 2 + textBlock[0].size;
+  // Pre-compute Y offsets for each line, using tighter advance between consecutive title rows
+  const offsets = [0];
+  textBlock.forEach((line, i) => {
+    if (i < textBlock.length - 1) {
+      const nextLine = textBlock[i + 1];
+      const advance = (line.isTitle && nextLine.isTitle) ? TITLE_ADVANCE : ADVANCE;
+      offsets.push(offsets[i] + advance);
+    }
+  });
+
+  // Total visual span: from top of first line to baseline of last line
+  const totalSpan = textBlock[0].size + offsets[offsets.length - 1];
+  const startY = (height - totalSpan) / 2 + textBlock[0].size;
 
   return (
     <svg
@@ -134,24 +154,24 @@ export default function RectLabel({
       viewBox={`0 0 ${width} ${height}`}
       xmlns="http://www.w3.org/2000/svg"
     >
-      {/* Die-cut border: #e6007e, 1pt, center-aligned stroke */}
+      {/* Die-cut border: #e6007e, sharp corners (rx=0) per client spec */}
       <rect
         x="0.5"
         y="0.5"
         width={width - 1}
         height={height - 1}
-        rx="1"
+        rx="0"
         fill="white"
         stroke={CUT_COLOR}
         strokeWidth="0.5"
       />
 
-      {/* Logo — bottom-left (or bottom-right), margin from die-cut, max on longest side */}
+      {/* Logo — bottom-left or bottom-right, moved down 0.25 cm per client spec */}
       {logoSrc ? (
         <image
           href={logoSrc}
           x={logoX}
-          y={height - MARGIN - LOGO_SIZE}
+          y={logoY}
           width={LOGO_SIZE}
           height={LOGO_SIZE}
           preserveAspectRatio="xMidYMid meet"
@@ -159,25 +179,21 @@ export default function RectLabel({
       ) : null}
 
       {/* Text block — vertically centered, aligned per align prop */}
-      {textBlock.map((line, index) => {
-        const currentY = y;
-        y += ADVANCE;
-        return (
-          <text
-            key={`${index}-${line.text}`}
-            x={textX + 20}
-            y={currentY}
-            textAnchor={"end"}
-            fontFamily={line.font}
-            fontSize={line.size}
-            fontWeight={line.weight}
-            fontStyle={line.italic ? "italic" : "normal"}
-            fill="#000"
-          >
-            {line.text}
-          </text>
-        );
-      })}
+      {textBlock.map((line, index) => (
+        <text
+          key={`${index}-${line.text}`}
+          x={textX}
+          y={startY + offsets[index]}
+          textAnchor={textAnchor}
+          fontFamily={line.font}
+          fontSize={line.size}
+          fontWeight={line.weight}
+          fontStyle={line.italic ? "italic" : "normal"}
+          fill="#000"
+        >
+          {line.text}
+        </text>
+      ))}
     </svg>
   );
 }
