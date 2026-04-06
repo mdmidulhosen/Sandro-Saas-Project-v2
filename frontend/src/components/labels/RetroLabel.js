@@ -5,13 +5,15 @@ import { CUT_COLOR } from "../../utils/labelUtils";
 // 1pt = 0.3528mm → 1pt = 1.764 SVG units
 const TITLE_FONT =
   "'Futura Condensed Extra Bold', 'Arial Narrow', Arial, sans-serif";
-const BODY_FONT = "'Futura Medium', 'Arial Narrow', Arial, sans-serif";
+// Futura Medium Condensed for category body lines (closer to the reference)
+const BODY_FONT =
+  "'Futura Medium Condensed', 'Futura Medium', 'Arial Narrow', Arial, sans-serif";
 
-const TITLE_SIZE = 14; // 8pt  (8 × 1.764 = 14.1)
-const BODY_SIZE = 19;  // 11pt (11 × 1.764 = 19.4) — reduced from 23 per client spec
-const PODIUM_SIZE = 21; // 12pt (12 × 1.764 = 21.2) — reduced from 23 per client spec
-const DATE_SIZE = 11;  // 6pt  (6 × 1.764 = 10.6)
-const LEADING = 24;   // 13.5pt baseline-to-baseline — reduced from 28, ensures 3 lines fit
+const TITLE_SIZE = 14;  // 8pt
+const BODY_SIZE  = 19;  // 11pt
+const PODIUM_SIZE = 21; // 12pt
+const DATE_SIZE  = 11;  // 6pt
+const LEADING    = 20;  // tighter line spacing between body lines (was 24)
 
 function upper(value) {
   return String(value || "").toUpperCase();
@@ -29,29 +31,44 @@ export default function RetroLabel({
 }) {
   const idRef = useRef(`cm-${Math.random().toString(36).slice(2, 8)}`);
   const uid = idRef.current;
-  // Coordinate system: SVG viewBox 200×200.
-  // The SVG width/height = diameterMm × mm → scales the sticker to the requested size.
-  // All internal coordinates stay in viewBox units — the browser/renderer scales them.
-  // At 40mm: 1 unit = 0.2 mm. At 50mm: 1 unit = 0.25 mm. At 70mm: 1 unit = 0.35 mm.
-  const size = diameterMm; // actual printed diameter in mm
-  const vb = 200;
-  const cx = 100;
-  const cy = 100;
-  const radius = 88; // die-cut circle
-  const outerTop = 78; // arc for race title row 1 (3.1 cm ø)
-  const innerTop = 65; // arc for race title row 2 (2.6 cm ø)
-  const bottomInner = 78; // arc for location/date text
+
+  const size = diameterMm;
+  const vb   = 200;
+  const cx   = 100;
+  const cy   = 100;
+  const radius      = 88; // die-cut circle
+  const outerTop    = 78; // arc for race title row 1
+  const innerTop    = 65; // arc for race title row 2
+  const bottomInner = 78; // arc for location/date
+
   const lines = categoryLines.filter(Boolean).slice(0, 3);
+  const lineCount = lines.length; // 0, 1, 2 or 3
 
-  // Center category+podium block vertically between title arcs and date arc.
-  // Shifts slightly up when date is visible to leave room for date text.
-  const medalTextY = hideDate ? 122 : 115;
+  // Vertical centre of the content block.
+  // When Row C is absent (lineCount < 3) the whole block shifts upward so it
+  // sits closer to the medal centre rather than floating low.
+  //
+  // Reference positions (viewBox units, approx):
+  //   Title arcs end  ≈ y 38   (cy - outerTop + TITLE_SIZE + dy)
+  //   Date arc starts ≈ y 173  (cy + bottomInner - DATE_SIZE)
+  //   Usable centre   ≈ y 105
+  //
+  // With 3 lines the block needs  3×LEADING + PODIUM_SIZE ≈ 81 units.
+  // With 2 lines                                           ≈ 61 units → shift up 10.
+  // With 1 line                                            ≈ 41 units → shift up 20.
+  // With 0 lines (podium only)                             ≈ 21 units → shift up 30.
+  const centerY = hideDate ? 110 : 105;
+  const SHIFT_PER_MISSING_LINE = 10;
+  const missingLines = 3 - lineCount;
+  const medalTextY = centerY - missingLines * SHIFT_PER_MISSING_LINE;
 
-  // Block midpoint: average of first category baseline and podium baseline.
-  // categoryFirst + lines.length × LEADING = podiumY
+  // Block: categoryFirst … categoryFirst + (lineCount-1)*LEADING … podiumY
+  // Midpoint = medalTextY
   // (categoryFirst + podiumY) / 2 = medalTextY
-  const categoryFirst = medalTextY - (lines.length * LEADING) / 2;
-  const podiumY = categoryFirst + lines.length * LEADING;
+  // podiumY = categoryFirst + lineCount * LEADING
+  // → categoryFirst = medalTextY - lineCount * LEADING / 2
+  const categoryFirst = medalTextY - (lineCount * LEADING) / 2;
+  const podiumY       = categoryFirst + lineCount * LEADING;
 
   return (
     <svg
@@ -75,16 +92,9 @@ export default function RetroLabel({
         />
       </defs>
 
-      <circle
-        cx={cx}
-        cy={cy}
-        r={radius}
-        fill="white"
-        stroke={CUT_COLOR}
-        strokeWidth="3"
-      />
+      <circle cx={cx} cy={cy} r={radius} fill="white" stroke={CUT_COLOR} strokeWidth="3" />
 
-      {/* Race title row 1 — outer top arc (3.1 cm ø), 8 pt */}
+      {/* Race title row 1 — outer top arc, dy=7 pushes text inside circle */}
       {!hideTitle && raceTitleRow1 ? (
         <text
           fontFamily={TITLE_FONT}
@@ -103,8 +113,7 @@ export default function RetroLabel({
         </text>
       ) : null}
 
-      {/* Race title row 2 — inner top arc (2.6 cm ø), 8 pt.
-          dy=12 ensures clear separation from row 1 (no overlap). */}
+      {/* Race title row 2 — inner top arc, dy=8 keeps it close to row 1 */}
       {!hideTitle && raceTitleRow2 ? (
         <text
           fontFamily={TITLE_FONT}
@@ -112,7 +121,7 @@ export default function RetroLabel({
           fontWeight="700"
           fill="#000"
           textAnchor="middle"
-          dy="12"
+          dy="8"
           {...(raceTitleRow2.length > 22
             ? { textLength: "250", lengthAdjust: "spacingAndGlyphs" }
             : {})}
@@ -123,6 +132,7 @@ export default function RetroLabel({
         </text>
       ) : null}
 
+      {/* Category body lines (Row A / B / C) — Futura Medium Condensed, tighter leading */}
       {lines.map((line, index) => (
         <text
           key={`${line}-${index}`}
@@ -137,6 +147,7 @@ export default function RetroLabel({
         </text>
       ))}
 
+      {/* Podium text */}
       <text
         x={cx}
         y={podiumY}
