@@ -7,6 +7,10 @@ export const PODIUM_PRESETS = {
   classified_f: (rank) => `${rank}° CLASSIFIED`,
   classificata: (rank) => `${rank}°CLASSIFICATA`,
   classificato: (rank) => `${rank}°CLASSIFICATO`,
+  // Matches TemplatesPage PODIO_MODES (note: hyphenated keys)
+  "non-classificata": () => "NON CLASSIFICATA",
+  "non-classificato": () => "NON CLASSIFICATO",
+  fasce: (rank) => (rank === 1 ? "FASCIA ORO" : rank === 2 ? "FASCIA ARGENTO" : "FASCIA BRONZO"),
 };
 
 export const TROPHY_SIZE_PRESETS = [

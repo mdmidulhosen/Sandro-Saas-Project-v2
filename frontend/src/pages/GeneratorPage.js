@@ -29,10 +29,13 @@ const BREAK_FIELDS = [
 ];
 
 const PODIUM_OPTIONS = [
-  { value: "class", label: "1° CLASS. / 2° CLASS. / 3° CLASS." },
-  { value: "numeric", label: "1° / 2° / 3°" },
-  { value: "classificata", label: "1°CLASSIFICATA / 2°CLASSIFICATA / 3°CLASSIFICATA" },
-  { value: "classificato", label: "1°CLASSIFICATO / 2°CLASSIFICATO / 3°CLASSIFICATO" },
+  { value: "class",             label: "1° CLASS. / 2° CLASS. / 3° CLASS." },
+  { value: "numeric",           label: "1° / 2° / 3°" },
+  { value: "classificata",      label: "1°CLASSIFICATA / 2°CLASSIFICATA / 3°CLASSIFICATA" },
+  { value: "classificato",      label: "1°CLASSIFICATO / 2°CLASSIFICATO / 3°CLASSIFICATO" },
+  { value: "fasce",             label: "FASCIA ORO / FASCIA ARGENTO / FASCIA BRONZO" },
+  { value: "non-classificata",  label: "NON CLASSIFICATA (all ranks)" },
+  { value: "non-classificato",  label: "NON CLASSIFICATO (all ranks)" },
 ];
 
 function buildDefaultConfig() {
