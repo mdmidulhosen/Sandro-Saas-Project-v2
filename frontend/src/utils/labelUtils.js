@@ -134,11 +134,29 @@ export function normalizeTemplate(config = {}) {
     trophyLogoSrc: config.trophyLogoSrc || "",
     participationCount: Math.max(0, parseInt(config.participationCount, 10) || 0),
     podiumPreset: globalPreset,
-    // Template-level default medal diameter — propagated to new categories added in the generator
-    defaultMedalDiameterMm: parseInt(config.podioDiameterMm, 10) || 40,
     // breakGapMm: extra vertical space inserted between different categories on the sheet
     breakGapMm: Math.max(0, parseFloat(config.breakGapMm) || 20),
     categories,
+    // Prototype used when "+ Add Category" is clicked in the Generator.
+    // Derived from the first template category so all template settings are pre-filled.
+    categoryDefaults: (() => {
+      const proto = categories[0] || newCategory();
+      return {
+        medals: proto.medals,
+        coppe: proto.coppe,
+        copiesPerRank: proto.copiesPerRank,
+        podiumPreset: globalPreset,
+        medalDiameterMm: parseInt(config.podioDiameterMm, 10) || proto.medalDiameterMm || 40,
+        trophyAlignment: proto.trophyAlignment || "center",
+        trophyLogoAlignment: proto.trophyLogoAlignment || "left",
+        hideCategoryMedal: proto.hideCategoryMedal || false,
+        hideCategoryTitle: proto.hideCategoryTitle || false,
+        hideCategoryDate: proto.hideCategoryDate || false,
+        hideTrophyTitle: proto.hideTrophyTitle || false,
+        hasApparatus: proto.hasApparatus || false,
+        apparatus: proto.apparatus || [],
+      };
+    })(),
   };
 }
 

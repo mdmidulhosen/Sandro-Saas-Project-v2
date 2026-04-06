@@ -171,10 +171,17 @@ export default function GeneratorPage() {
       categories: [
         ...prev.categories,
         newCategory({
+          // Spread all template defaults so every setting is pre-filled correctly
+          ...(prev.categoryDefaults || {}),
+          // Reset text rows so the user fills them in fresh
           reference: `CATEGORY ${prev.categories.length + 1}`,
           rowA: "CATEGORY",
-          podiumPreset: prev.podiumPreset,           // inherit global preset from template
-          medalDiameterMm: prev.defaultMedalDiameterMm || 40, // inherit template diameter
+          rowB: "",
+          rowC: "",
+          podiumText: "",
+          podiumTextByRank: { 1: "", 2: "", 3: "" },
+          trophyWidthCmByRank: {},
+          trophyHeightCmByRank: {},
         }),
       ],
     }));
