@@ -564,21 +564,6 @@ export default function GeneratorPage() {
                     <label>Hide trophy title</label>
                     <input type="checkbox" checked={category.hideTrophyTitle} onChange={(event) => updateCategory(index, "hideTrophyTitle", event.target.checked)} />
                   </div>
-                  <div className="field">
-                    <label>Trophy text align</label>
-                    <select value={category.trophyAlignment} onChange={(event) => updateCategory(index, "trophyAlignment", event.target.value)}>
-                      <option value="left">Left</option>
-                      <option value="center">Center</option>
-                      <option value="right">Right</option>
-                    </select>
-                  </div>
-                  <div className="field">
-                    <label>Trophy logo align</label>
-                    <select value={category.trophyLogoAlignment} onChange={(event) => updateCategory(index, "trophyLogoAlignment", event.target.value)}>
-                      <option value="left">Left</option>
-                      <option value="right">Right</option>
-                    </select>
-                  </div>
                 </div>
 
                 <div className="form-grid">
