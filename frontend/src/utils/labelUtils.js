@@ -14,9 +14,9 @@ export const PODIUM_PRESETS = {
 };
 
 export const TROPHY_SIZE_PRESETS = [
-  { rank: 1, label: "1° CLASS. - 5.5x2.3 cm", widthCm: 5.5, heightCm: 2.3 },
-  { rank: 2, label: "2° CLASS. - 5.0x2.3 cm", widthCm: 5.0, heightCm: 2.3 },
-  { rank: 3, label: "3° CLASS. - 4.5x2.3 cm", widthCm: 4.5, heightCm: 2.3 },
+  { rank: 1, label: "1° - 4.5x2.3 cm", widthCm: 4.5, heightCm: 2.3 },
+  { rank: 2, label: "2° - 4.5x2.3 cm", widthCm: 4.5, heightCm: 2.3 },
+  { rank: 3, label: "3° - 4.5x2.3 cm", widthCm: 4.5, heightCm: 2.3 },
 ];
 
 function uid() {
