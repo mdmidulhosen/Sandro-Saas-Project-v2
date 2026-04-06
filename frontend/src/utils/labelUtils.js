@@ -7,6 +7,10 @@ export const PODIUM_PRESETS = {
   classified_f: (rank) => `${rank}° CLASSIFIED`,
   classificata: (rank) => `${rank}°CLASSIFICATA`,
   classificato: (rank) => `${rank}°CLASSIFICATO`,
+  // Matches TemplatesPage PODIO_MODES (note: hyphenated keys)
+  "non-classificata": () => "NON CLASSIFICATA",
+  "non-classificato": () => "NON CLASSIFICATO",
+  fasce: (rank) => (rank === 1 ? "FASCIA ORO" : rank === 2 ? "FASCIA ARGENTO" : "FASCIA BRONZO"),
 };
 
 export const TROPHY_SIZE_PRESETS = [
@@ -130,19 +134,30 @@ export function normalizeTemplate(config = {}) {
     trophyLogoSrc: config.trophyLogoSrc || "",
     participationCount: Math.max(0, parseInt(config.participationCount, 10) || 0),
     podiumPreset: globalPreset,
-    categoryBreakField: config.categoryBreakField || "rowA",
-    trophyBreakField: config.trophyBreakField || "rowA",
+    // breakGapMm: extra vertical space inserted between different categories on the sheet
     breakGapMm: Math.max(0, parseFloat(config.breakGapMm) || 20),
     categories,
+    // Prototype used when "+ Add Category" is clicked in the Generator.
+    // Derived from the first template category so all template settings are pre-filled.
+    categoryDefaults: (() => {
+      const proto = categories[0] || newCategory();
+      return {
+        medals: proto.medals,
+        coppe: proto.coppe,
+        copiesPerRank: proto.copiesPerRank,
+        podiumPreset: globalPreset,
+        medalDiameterMm: parseInt(config.podioDiameterMm, 10) || proto.medalDiameterMm || 40,
+        trophyAlignment: proto.trophyAlignment || "center",
+        trophyLogoAlignment: proto.trophyLogoAlignment || "left",
+        hideCategoryMedal: proto.hideCategoryMedal || false,
+        hideCategoryTitle: proto.hideCategoryTitle || false,
+        hideCategoryDate: proto.hideCategoryDate || false,
+        hideTrophyTitle: proto.hideTrophyTitle || false,
+        hasApparatus: proto.hasApparatus || false,
+        apparatus: proto.apparatus || [],
+      };
+    })(),
   };
-}
-
-function getBreakValue(category, field) {
-  if (!field) return "";
-  if (field === "rowA") return normalizeText(category.rowA);
-  if (field === "rowB") return normalizeText(category.rowB);
-  if (field === "rowC") return normalizeText(category.rowC);
-  return "";
 }
 
 export function generateAllLabels(rawConfig) {
@@ -182,7 +197,8 @@ export function generateAllLabels(rawConfig) {
             hideDate: category.hideCategoryDate,
             categoryLines,
             podiumText: getPodiumText(rank, category, config.podiumPreset),
-            breakValue: getBreakValue(category, config.categoryBreakField),
+            diameterMm: category.medalDiameterMm || 40,
+            breakValue: category.id,
             reference: category.reference,
             tag: `${category.rowA || category.reference} - medal ${rank}`,
           });
@@ -210,7 +226,8 @@ export function generateAllLabels(rawConfig) {
                   hideDate: category.hideCategoryDate,
                   categoryLines: normalizeLines([category.rowA, category.rowB, appName], 3),
                   podiumText: getPodiumText(rank, category, config.podiumPreset),
-                  breakValue: getBreakValue(category, config.categoryBreakField),
+                  diameterMm: category.medalDiameterMm || 40,
+                  breakValue: category.id,
                   reference: category.reference,
                   tag: `${category.rowA || category.reference} - ${appName} ${rank}°`,
                 });
@@ -238,7 +255,7 @@ export function generateAllLabels(rawConfig) {
           logoAlign: category.trophyLogoAlignment || "left",
           widthCm: preset.widthCm,
           heightCm: preset.heightCm,
-          breakValue: getBreakValue(category, config.trophyBreakField),
+          breakValue: category.id,
           reference: category.reference,
           tag: `${category.rowA || category.reference} - trophy ${rank}`,
         });

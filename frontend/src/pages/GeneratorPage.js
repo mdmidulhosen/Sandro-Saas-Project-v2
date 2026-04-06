@@ -21,18 +21,15 @@ const SHEET_SIZES = [
   { key: "custom", label: "Custom width", w: null },
 ];
 
-// "Reference" removed — use Row A / B / C only
-const BREAK_FIELDS = [
-  { value: "rowA", label: "Row A" },
-  { value: "rowB", label: "Row B" },
-  { value: "rowC", label: "Row C" },
-];
 
 const PODIUM_OPTIONS = [
-  { value: "class", label: "1° CLASS. / 2° CLASS. / 3° CLASS." },
-  { value: "numeric", label: "1° / 2° / 3°" },
-  { value: "classificata", label: "1°CLASSIFICATA / 2°CLASSIFICATA / 3°CLASSIFICATA" },
-  { value: "classificato", label: "1°CLASSIFICATO / 2°CLASSIFICATO / 3°CLASSIFICATO" },
+  { value: "class",             label: "1° CLASS. / 2° CLASS. / 3° CLASS." },
+  { value: "numeric",           label: "1° / 2° / 3°" },
+  { value: "classificata",      label: "1°CLASSIFICATA / 2°CLASSIFICATA / 3°CLASSIFICATA" },
+  { value: "classificato",      label: "1°CLASSIFICATO / 2°CLASSIFICATO / 3°CLASSIFICATO" },
+  { value: "fasce",             label: "FASCIA ORO / FASCIA ARGENTO / FASCIA BRONZO" },
+  { value: "non-classificata",  label: "NON CLASSIFICATA (all ranks)" },
+  { value: "non-classificato",  label: "NON CLASSIFICATO (all ranks)" },
 ];
 
 function buildDefaultConfig() {
@@ -174,9 +171,17 @@ export default function GeneratorPage() {
       categories: [
         ...prev.categories,
         newCategory({
+          // Spread all template defaults so every setting is pre-filled correctly
+          ...(prev.categoryDefaults || {}),
+          // Reset text rows so the user fills them in fresh
           reference: `CATEGORY ${prev.categories.length + 1}`,
           rowA: "CATEGORY",
-          podiumPreset: prev.podiumPreset, // inherit global preset from template
+          rowB: "",
+          rowC: "",
+          podiumText: "",
+          podiumTextByRank: { 1: "", 2: "", 3: "" },
+          trophyWidthCmByRank: {},
+          trophyHeightCmByRank: {},
         }),
       ],
     }));
@@ -300,6 +305,7 @@ export default function GeneratorPage() {
           locationDate={label.locationDate}
           hideTitle={label.hideTitle}
           hideDate={label.hideDate}
+          diameterMm={label.diameterMm || 40}
         />
       );
     }
@@ -401,34 +407,8 @@ export default function GeneratorPage() {
           </div>
           <div className="field">
             <label>
-              Category medal group break{" "}
-              <span style={{ opacity: 0.6, fontSize: "0.8em" }}>(add row gap between categories)</span>
-            </label>
-            <select value={config.categoryBreakField} onChange={(event) => updateConfig("categoryBreakField", event.target.value)}>
-              {BREAK_FIELDS.map((item) => (
-                <option key={item.value} value={item.value}>
-                  {item.label}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="field">
-            <label>
-              Trophy group break{" "}
-              <span style={{ opacity: 0.6, fontSize: "0.8em" }}>(add row gap between categories)</span>
-            </label>
-            <select value={config.trophyBreakField} onChange={(event) => updateConfig("trophyBreakField", event.target.value)}>
-              {BREAK_FIELDS.map((item) => (
-                <option key={item.value} value={item.value}>
-                  {item.label}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="field">
-            <label>
-              Group break gap (mm){" "}
-              <span style={{ opacity: 0.6, fontSize: "0.8em" }}>(extra vertical space between groups)</span>
+              Space between categories (mm){" "}
+              <span style={{ opacity: 0.6, fontSize: "0.8em" }}>(extra vertical gap on exported PDF)</span>
             </label>
             <input type="number" min="0" max="100" value={config.breakGapMm} onChange={(event) => updateConfig("breakGapMm", parseInt(event.target.value, 10) || 0)} />
           </div>
@@ -497,13 +477,14 @@ export default function GeneratorPage() {
               </div>
               <div className="field">
                 <label>Ø Medaglie (mm)</label>
-                <input
-                  type="number"
-                  min="20"
-                  max="100"
+                <select
                   value={category.medalDiameterMm}
-                  onChange={(event) => updateCategory(index, "medalDiameterMm", parseInt(event.target.value, 10) || 40)}
-                />
+                  onChange={(event) => updateCategory(index, "medalDiameterMm", parseInt(event.target.value, 10))}
+                >
+                  {[40, 50, 70].map((d) => (
+                    <option key={d} value={d}>{d} mm</option>
+                  ))}
+                </select>
               </div>
             </div>
 
@@ -589,21 +570,6 @@ export default function GeneratorPage() {
                   <div className="field field-checkbox">
                     <label>Hide trophy title</label>
                     <input type="checkbox" checked={category.hideTrophyTitle} onChange={(event) => updateCategory(index, "hideTrophyTitle", event.target.checked)} />
-                  </div>
-                  <div className="field">
-                    <label>Trophy text align</label>
-                    <select value={category.trophyAlignment} onChange={(event) => updateCategory(index, "trophyAlignment", event.target.value)}>
-                      <option value="left">Left</option>
-                      <option value="center">Center</option>
-                      <option value="right">Right</option>
-                    </select>
-                  </div>
-                  <div className="field">
-                    <label>Trophy logo align</label>
-                    <select value={category.trophyLogoAlignment} onChange={(event) => updateCategory(index, "trophyLogoAlignment", event.target.value)}>
-                      <option value="left">Left</option>
-                      <option value="right">Right</option>
-                    </select>
                   </div>
                 </div>
 

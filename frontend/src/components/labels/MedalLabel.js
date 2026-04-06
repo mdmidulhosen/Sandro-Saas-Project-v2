@@ -61,7 +61,12 @@ export default function MedalLabel({
         />
         {/* Logo clip: square 1.25cm × 1.25cm centered */}
         <clipPath id={`${uid}-logo`}>
-          <rect x={logoOffset} y={logoOffset} width={logoSize} height={logoSize} />
+          <rect
+            x={logoOffset}
+            y={logoOffset}
+            width={logoSize}
+            height={logoSize}
+          />
         </clipPath>
       </defs>
 
@@ -96,7 +101,7 @@ export default function MedalLabel({
           fontWeight="700"
           fill="#000"
           textAnchor="middle"
-          dy="7"
+          dy="14"
           {...(raceTitleRow1.length > 22
             ? { textLength: "230", lengthAdjust: "spacingAndGlyphs" }
             : {})}
@@ -115,7 +120,7 @@ export default function MedalLabel({
           fontWeight="700"
           fill="#000"
           textAnchor="middle"
-          dy="14"
+          dy="7"
           {...(raceTitleRow2.length > 18
             ? { textLength: "190", lengthAdjust: "spacingAndGlyphs" }
             : {})}

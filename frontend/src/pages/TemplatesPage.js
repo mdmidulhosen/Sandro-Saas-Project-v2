@@ -384,6 +384,21 @@ export default function TemplatesPage() {
                       <label>{t('tmpl_col_winners')}</label>
                       <input type="number" min="1" max="20" value={cat.winnersPerPosition || 1} onChange={e => updateCategory(i, 'winnersPerPosition', parseInt(e.target.value) || 1)} />
                     </div>
+                    <div className="field">
+                      <label>Trophy text align</label>
+                      <select value={cat.trophyAlignment || 'center'} onChange={e => updateCategory(i, 'trophyAlignment', e.target.value)}>
+                        <option value="left">Left</option>
+                        <option value="center">Center</option>
+                        <option value="right">Right</option>
+                      </select>
+                    </div>
+                    <div className="field">
+                      <label>Trophy logo align</label>
+                      <select value={cat.trophyLogoAlignment || 'left'} onChange={e => updateCategory(i, 'trophyLogoAlignment', e.target.value)}>
+                        <option value="left">Left</option>
+                        <option value="right">Right</option>
+                      </select>
+                    </div>
                     <div className="field field-checkbox">
                       <label>{t('tmpl_col_apparatus')}</label>
                       <input type="checkbox" checked={cat.hasApparatus} onChange={e => updateCategory(i, 'hasApparatus', e.target.checked)} />

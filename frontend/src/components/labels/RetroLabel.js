@@ -25,16 +25,15 @@ export default function RetroLabel({
   locationDate = "",
   hideDate = false,
   hideTitle = false,
+  diameterMm = 40,
 }) {
   const idRef = useRef(`cm-${Math.random().toString(36).slice(2, 8)}`);
   const uid = idRef.current;
-  // Coordinate system: SVG is 40mm × 40mm, viewBox 200×200 → 1 unit = 0.2 mm
-  // Sticker = 4.0 cm total (includes ~2.5 mm bleed each side)
-  // Die-cut diameter:  3.5 cm = 35 mm → radius = 17.5 mm = 88 SVG units
-  // Outer title arc:   3.1 cm ø → radius = 15.5 mm = 78 SVG units (clockwise = over top)
-  // Inner title arc:   2.6 cm ø → radius = 13.0 mm = 65 SVG units
-  // Bottom date arc:   same as outer → 78 SVG units (counter-clockwise = under bottom)
-  const size = 40;
+  // Coordinate system: SVG viewBox 200×200.
+  // The SVG width/height = diameterMm × mm → scales the sticker to the requested size.
+  // All internal coordinates stay in viewBox units — the browser/renderer scales them.
+  // At 40mm: 1 unit = 0.2 mm. At 50mm: 1 unit = 0.25 mm. At 70mm: 1 unit = 0.35 mm.
+  const size = diameterMm; // actual printed diameter in mm
   const vb = 200;
   const cx = 100;
   const cy = 100;
