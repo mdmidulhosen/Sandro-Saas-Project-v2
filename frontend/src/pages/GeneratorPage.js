@@ -173,7 +173,8 @@ export default function GeneratorPage() {
         newCategory({
           reference: `CATEGORY ${prev.categories.length + 1}`,
           rowA: "CATEGORY",
-          podiumPreset: prev.podiumPreset, // inherit global preset from template
+          podiumPreset: prev.podiumPreset,           // inherit global preset from template
+          medalDiameterMm: prev.defaultMedalDiameterMm || 40, // inherit template diameter
         }),
       ],
     }));
@@ -297,6 +298,7 @@ export default function GeneratorPage() {
           locationDate={label.locationDate}
           hideTitle={label.hideTitle}
           hideDate={label.hideDate}
+          diameterMm={label.diameterMm || 40}
         />
       );
     }
@@ -468,13 +470,14 @@ export default function GeneratorPage() {
               </div>
               <div className="field">
                 <label>Ø Medaglie (mm)</label>
-                <input
-                  type="number"
-                  min="20"
-                  max="100"
+                <select
                   value={category.medalDiameterMm}
-                  onChange={(event) => updateCategory(index, "medalDiameterMm", parseInt(event.target.value, 10) || 40)}
-                />
+                  onChange={(event) => updateCategory(index, "medalDiameterMm", parseInt(event.target.value, 10))}
+                >
+                  {[40, 50, 70].map((d) => (
+                    <option key={d} value={d}>{d} mm</option>
+                  ))}
+                </select>
               </div>
             </div>
 

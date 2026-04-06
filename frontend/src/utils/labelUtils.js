@@ -134,6 +134,8 @@ export function normalizeTemplate(config = {}) {
     trophyLogoSrc: config.trophyLogoSrc || "",
     participationCount: Math.max(0, parseInt(config.participationCount, 10) || 0),
     podiumPreset: globalPreset,
+    // Template-level default medal diameter — propagated to new categories added in the generator
+    defaultMedalDiameterMm: parseInt(config.podioDiameterMm, 10) || 40,
     // breakGapMm: extra vertical space inserted between different categories on the sheet
     breakGapMm: Math.max(0, parseFloat(config.breakGapMm) || 20),
     categories,
@@ -177,6 +179,7 @@ export function generateAllLabels(rawConfig) {
             hideDate: category.hideCategoryDate,
             categoryLines,
             podiumText: getPodiumText(rank, category, config.podiumPreset),
+            diameterMm: category.medalDiameterMm || 40,
             breakValue: category.id,
             reference: category.reference,
             tag: `${category.rowA || category.reference} - medal ${rank}`,
@@ -205,6 +208,7 @@ export function generateAllLabels(rawConfig) {
                   hideDate: category.hideCategoryDate,
                   categoryLines: normalizeLines([category.rowA, category.rowB, appName], 3),
                   podiumText: getPodiumText(rank, category, config.podiumPreset),
+                  diameterMm: category.medalDiameterMm || 40,
                   breakValue: category.id,
                   reference: category.reference,
                   tag: `${category.rowA || category.reference} - ${appName} ${rank}°`,
