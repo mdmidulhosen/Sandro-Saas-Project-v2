@@ -134,19 +134,10 @@ export function normalizeTemplate(config = {}) {
     trophyLogoSrc: config.trophyLogoSrc || "",
     participationCount: Math.max(0, parseInt(config.participationCount, 10) || 0),
     podiumPreset: globalPreset,
-    categoryBreakField: config.categoryBreakField || "rowA",
-    trophyBreakField: config.trophyBreakField || "rowA",
+    // breakGapMm: extra vertical space inserted between different categories on the sheet
     breakGapMm: Math.max(0, parseFloat(config.breakGapMm) || 20),
     categories,
   };
-}
-
-function getBreakValue(category, field) {
-  if (!field) return "";
-  if (field === "rowA") return normalizeText(category.rowA);
-  if (field === "rowB") return normalizeText(category.rowB);
-  if (field === "rowC") return normalizeText(category.rowC);
-  return "";
 }
 
 export function generateAllLabels(rawConfig) {
@@ -186,7 +177,7 @@ export function generateAllLabels(rawConfig) {
             hideDate: category.hideCategoryDate,
             categoryLines,
             podiumText: getPodiumText(rank, category, config.podiumPreset),
-            breakValue: getBreakValue(category, config.categoryBreakField),
+            breakValue: category.id,
             reference: category.reference,
             tag: `${category.rowA || category.reference} - medal ${rank}`,
           });
@@ -214,7 +205,7 @@ export function generateAllLabels(rawConfig) {
                   hideDate: category.hideCategoryDate,
                   categoryLines: normalizeLines([category.rowA, category.rowB, appName], 3),
                   podiumText: getPodiumText(rank, category, config.podiumPreset),
-                  breakValue: getBreakValue(category, config.categoryBreakField),
+                  breakValue: category.id,
                   reference: category.reference,
                   tag: `${category.rowA || category.reference} - ${appName} ${rank}°`,
                 });
@@ -242,7 +233,7 @@ export function generateAllLabels(rawConfig) {
           logoAlign: category.trophyLogoAlignment || "left",
           widthCm: preset.widthCm,
           heightCm: preset.heightCm,
-          breakValue: getBreakValue(category, config.trophyBreakField),
+          breakValue: category.id,
           reference: category.reference,
           tag: `${category.rowA || category.reference} - trophy ${rank}`,
         });

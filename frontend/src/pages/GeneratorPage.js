@@ -21,12 +21,6 @@ const SHEET_SIZES = [
   { key: "custom", label: "Custom width", w: null },
 ];
 
-// "Reference" removed — use Row A / B / C only
-const BREAK_FIELDS = [
-  { value: "rowA", label: "Row A" },
-  { value: "rowB", label: "Row B" },
-  { value: "rowC", label: "Row C" },
-];
 
 const PODIUM_OPTIONS = [
   { value: "class",             label: "1° CLASS. / 2° CLASS. / 3° CLASS." },
@@ -404,34 +398,8 @@ export default function GeneratorPage() {
           </div>
           <div className="field">
             <label>
-              Category medal group break{" "}
-              <span style={{ opacity: 0.6, fontSize: "0.8em" }}>(add row gap between categories)</span>
-            </label>
-            <select value={config.categoryBreakField} onChange={(event) => updateConfig("categoryBreakField", event.target.value)}>
-              {BREAK_FIELDS.map((item) => (
-                <option key={item.value} value={item.value}>
-                  {item.label}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="field">
-            <label>
-              Trophy group break{" "}
-              <span style={{ opacity: 0.6, fontSize: "0.8em" }}>(add row gap between categories)</span>
-            </label>
-            <select value={config.trophyBreakField} onChange={(event) => updateConfig("trophyBreakField", event.target.value)}>
-              {BREAK_FIELDS.map((item) => (
-                <option key={item.value} value={item.value}>
-                  {item.label}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="field">
-            <label>
-              Group break gap (mm){" "}
-              <span style={{ opacity: 0.6, fontSize: "0.8em" }}>(extra vertical space between groups)</span>
+              Space between categories (mm){" "}
+              <span style={{ opacity: 0.6, fontSize: "0.8em" }}>(extra vertical gap on exported PDF)</span>
             </label>
             <input type="number" min="0" max="100" value={config.breakGapMm} onChange={(event) => updateConfig("breakGapMm", parseInt(event.target.value, 10) || 0)} />
           </div>
