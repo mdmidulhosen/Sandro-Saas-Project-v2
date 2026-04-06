@@ -101,7 +101,7 @@ export default function MedalLabel({
           fontWeight="700"
           fill="#000"
           textAnchor="middle"
-          dy="14"
+          dy="8"
           {...(raceTitleRow1.length > 22
             ? { textLength: "230", lengthAdjust: "spacingAndGlyphs" }
             : {})}
